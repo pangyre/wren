@@ -10,7 +10,7 @@ package Wren v0.0.1 {
     use Wren::Error;
     use parent "Exporter";
     # use Exporter "import";
-    our @EXPORT = qw( add_model );
+    our @EXPORT = qw( add_model $wren );
 
     my $wren;
     sub import {
@@ -45,17 +45,6 @@ package Wren v0.0.1 {
 "Winter"
 
 __END__
-    model "DB" =>
-        class => "Taster::Schema",
-        connect_info => [ "dbi:SQLite::memory:",
-                          undef,
-                          undef,
-                          { RaiseError => 1,
-                            AutoCommit => 1,
-                            ChopBlanks => 1,
-                            sqlite_unicode => 1, } ];
-
-
     #use Path::Tiny;
     #use HTTP::Negotiate "choose";
     #use HTTP::Headers::Util qw( split_header_words join_header_words );
@@ -137,6 +126,32 @@ Wren - ...
 =item * request
 
 =item * response
+
+=back
+
+=head1 MVC
+
+=head2 Models
+
+=over 4
+
+=item * add_model
+
+Only L<DBIx::Class> models are supported just now. Not intentional, just what is stubbed out.
+
+ add_model "NameSpace" =>
+     class => "My::Schema",
+     connect_info => [ "dbi:SQLite::memory:",
+                       undef,
+                       undef,
+                       { RaiseError => 1,
+                         AutoCommit => 1,
+                         ChopBlanks => 1,
+                         sqlite_unicode => 1, } ];
+
+ $wren->model("NameSpace"); # Gets Schema
+
+ $wren->model("NameSpace::Source"); # Gets resultset for source (usually a table).
 
 =back
 
