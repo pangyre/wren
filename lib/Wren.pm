@@ -27,7 +27,6 @@ package Wren v0.0.1 {
             set_model => "set",
         };
 
-
     sub add_model {
         my $name = shift;
         my %arg = @_;
@@ -40,6 +39,17 @@ package Wren v0.0.1 {
             $wren->set_model( join("::",$name,$source) => $schema->resulset($source) );
         }
     }
+
+    # Pipeline-
+    # Negotiate...?
+    # Handle input -> Request.
+    # Dispatch to Controller.
+    # (Models available at all points here).
+    # Render in View to Response (Should have a FAST/SANE default.)
+    #   OR -> give FH type object to response.
+    # Finalize ^implied aboe^.
+
+
 }
 
 "Winter"
@@ -149,9 +159,10 @@ Only L<DBIx::Class> models are supported just now. Not intentional, just what is
                          ChopBlanks => 1,
                          sqlite_unicode => 1, } ];
 
- $wren->model("NameSpace"); # Gets Schema
-
- $wren->model("NameSpace::Source"); # Gets resultset for source (usually a table).
+ my $schema = $wren->model("NameSpace");
+ my $source_rs = $wren->model("NameSpace::Source");
+ my @results = $wren->model("NameSpace::Source")
+      ->search({ field => "value" });
 
 =back
 
