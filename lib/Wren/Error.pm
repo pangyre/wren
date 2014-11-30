@@ -19,7 +19,7 @@ package Wren::Error {
         $self->message;
     }
 
-    sub throw { die +shift->new(@_) }
+    sub throw { die +shift->new(join " ", @_) }
 
 };
 

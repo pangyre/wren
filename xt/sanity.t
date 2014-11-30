@@ -29,6 +29,7 @@ subtest "Walk everything: use/Pod/coverage/spelling" => sub {
 
         $count += 3;
     }
+
     done_testing($count);
 };
 

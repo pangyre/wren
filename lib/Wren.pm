@@ -2,9 +2,60 @@ use 5.14.2;
 
 package Wren v0.0.1 {
     use Moo;
+    use MooX::late;
+    use MooX::HandlesVia;
     use Plack::Request;
     use Plack::Response;
     use HTTP::Status ":constants", "status_message";
+    use Wren::Error;
+    use parent "Exporter";
+    # use Exporter "import";
+    our @EXPORT = qw( add_model );
+
+    my $wren;
+    sub import {
+        __PACKAGE__->export_to_level(1, @_);
+        $wren = __PACKAGE__->new;
+    }
+
+    has "models" =>
+        is => "ro",
+        traits  => ["Hash"],
+        default => sub { {} },
+        handles => {
+            model => "get",
+            set_model => "set",
+        };
+
+
+    sub add_model {
+        my $name = shift;
+        my %arg = @_;
+        eval "use $arg{class}";
+        Wren::Error->throw("Couldn't load $arg{class}: ", $@) if $@;
+        my $schema = "$arg{class}"->connect( $arg{connect_info} );
+        $wren->set_model( $name => $schema ); # iterate on named Sources?
+        for my $source ( $wren->model("DB")->sources )
+        {
+            $wren->set_model( join("::",$name,$source) => $schema->resulset($source) );
+        }
+    }
+}
+
+"Winter"
+
+__END__
+    model "DB" =>
+        class => "Taster::Schema",
+        connect_info => [ "dbi:SQLite::memory:",
+                          undef,
+                          undef,
+                          { RaiseError => 1,
+                            AutoCommit => 1,
+                            ChopBlanks => 1,
+                            sqlite_unicode => 1, } ];
+
+
     #use Path::Tiny;
     #use HTTP::Negotiate "choose";
     #use HTTP::Headers::Util qw( split_header_words join_header_words );
