@@ -10,9 +10,11 @@ package Wren v0.0.1 {
     use Wren::Error;
     use parent "Exporter";
     # use Exporter "import";
-    our @EXPORT = qw( add_model $wren );
+    our @EXPORT = qw( add_model $wren wren );
 
     my $wren;
+    sub wren { $wren } # No, but for now...
+
     sub import {
         __PACKAGE__->export_to_level(1, @_);
         $wren = __PACKAGE__->new;
@@ -32,11 +34,11 @@ package Wren v0.0.1 {
         my %arg = @_;
         eval "use $arg{class}";
         Wren::Error->throw("Couldn't load $arg{class}: ", $@) if $@;
-        my $schema = "$arg{class}"->connect( $arg{connect_info} );
+        my $schema = "$arg{class}"->connect( @{ $arg{connect_info} } );
         $wren->set_model( $name => $schema ); # iterate on named Sources?
         for my $source ( $wren->model("DB")->sources )
         {
-            $wren->set_model( join("::",$name,$source) => $schema->resulset($source) );
+            $wren->set_model( join("::",$name,$source) => $schema->resultset($source) );
         }
     }
 

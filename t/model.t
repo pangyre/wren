@@ -9,27 +9,31 @@ BEGIN {
 
 use lib "$lib";
 use_ok("WrenApp");
+isa_ok WrenApp->wren, "Wren", "Wren object is created as side-effect of use/import";
 
-
-done_testing();
-
-__END__
 
 subtest "DBIx::Class model" => sub {
-    
+    my $wren = WrenApp->wren;
+    isa_ok my $schema = $wren->model("DB"), "DBIx::Class::Schema";
+    is exception { $schema->deploy }, undef,
+        "No exception on schema->deploy";
 
-    ok my $schema = Taster::Schema->connect("dbi:SQLite::memory:",
-                                            { RaiseError => 1,
-                                              AutoCommit => 1 }),
-        "Connecting to dbi:SQLite::memory:";
+    ok my $user = $wren->model("DB::User")->create({ login => "ohai" }),
+        "Create a user with model(DB::User)";
 
-    is eval { $schema->deploy; "ok" },
-        "ok",
-    "Deploying schema is okay";
+    isa_ok $user, "WrenApp::Schema::Result::User";
 
-    done_testing();
+    for my $login ( map "user-" . $_, "a" .. "z" )
+    {
+        $wren->model("DB::User")->create({ login => $login });
+    }
+
+    is $wren->model("DB::User")->count, 27, "Result operations seem fine";
+    # note sprintf "%5d %s", $_->id, $_->login for $wren->model("DB::User")->all;
+
+    done_testing(5);
 };
 
-done_testing(1);
+done_testing(3);
 
 __END__
