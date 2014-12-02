@@ -121,13 +121,15 @@ __END__
 
 =head1 Name
 
-Wren - ...
+Wren - B<Experimental> lightweight web framework.
 
 =head1 Synopsis
 
 =head1 Description
 
 =over 4
+
+=item * wren
 
 =item * app
 
@@ -165,6 +167,8 @@ Only L<DBIx::Class> models are supported just now. Not intentional, just what is
  my $source_rs = $wren->model("NameSpace::Source");
  my @results = $wren->model("NameSpace::Source")
       ->search({ field => "value" });
+
+=item * models
 
 =back
 
