@@ -10,7 +10,7 @@ package Wren v0.0.1 {
     use Wren::Error;
     use parent "Exporter";
     # use Exporter "import";
-    our @EXPORT = qw( add_model $wren wren );
+    our @EXPORT = qw( add_model wren );
 
     my $wren;
     sub wren { $wren } # No, but for now...
@@ -41,16 +41,6 @@ package Wren v0.0.1 {
             $wren->set_model( join("::",$name,$source) => $schema->resultset($source) );
         }
     }
-
-    # Pipeline-
-    # Negotiate...?
-    # Handle input -> Request.
-    # Dispatch to Controller.
-    # (Models available at all points here).
-    # Render in View to Response (Should have a FAST/SANE default.)
-    #   OR -> give FH type object to response.
-    # Finalize ^implied aboe^.
-
 
 }
 
@@ -127,11 +117,34 @@ Wren - B<Experimental> lightweight web framework.
 
 =head1 Description
 
+    # Config, build
+    # wren->to_app???
+
+    # Pipeline-
+    # Negotiate...?
+    # Handle input -> Request.
+    # Dispatch to Controller.
+    # (Models available at all points here).
+    # Render in View to Response (Should have a FAST/SANE default.)
+    #   OR -> give FH type object to response.
+    # Finalize ^implied aboe^.
+
+
+=head2 Functions
+
 =over 4
 
 =item * wren
 
-=item * app
+=item * add_model
+
+=back
+
+=head2 Methods
+
+...exposit on object and request cycle from L</Description>.
+
+=over 4
 
 =item * env
 
@@ -141,17 +154,18 @@ Wren - B<Experimental> lightweight web framework.
 
 =item * response
 
+=item * models
+
 =back
 
 =head1 MVC
 
 =head2 Models
 
-=over 4
-
-=item * add_model
-
 Only L<DBIx::Class> models are supported just now. Not intentional, just what is stubbed out.
+
+This stuff should be descripted in abstract and index here and
+detailed in Wren::Guide or something.
 
  add_model "NameSpace" =>
      class => "My::Schema",
@@ -167,10 +181,6 @@ Only L<DBIx::Class> models are supported just now. Not intentional, just what is
  my $source_rs = $wren->model("NameSpace::Source");
  my @results = $wren->model("NameSpace::Source")
       ->search({ field => "value" });
-
-=item * models
-
-=back
 
 =head1 Code Repository
 
