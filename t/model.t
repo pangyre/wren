@@ -2,15 +2,14 @@ use strictures;
 use Test::More;
 use Test::Fatal;
 use Path::Tiny;
-my ( $lib, $demo );
+my $lib;
 BEGIN {
     $lib = path( path( __FILE__ )->parent, "lib" );
 }
-
 use lib "$lib";
+
 use_ok("WrenApp");
 isa_ok WrenApp->wren, "Wren", "Wren object is created as side-effect of use/import";
-
 
 subtest "DBIx::Class model" => sub {
     my $wren = WrenApp->wren;
