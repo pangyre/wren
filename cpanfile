@@ -1,3 +1,4 @@
+requires "parent";
 requires "Moo";
 requires "MooX::HandlesVia";
 requires "MooX::late";

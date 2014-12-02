@@ -9,7 +9,6 @@ my $MAKEFILE = Cwd::realpath(__FILE__);
 name "Wren";
 all_from "lib/Wren.pm";
 
-# requires "parent" => undef;
 #install_requires "LWP::Simple" => undef;
 #install_requires "Archive::Zip" => undef;
 
