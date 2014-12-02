@@ -3,8 +3,8 @@ use strict;
 use warnings;
 use Cwd ();
 #use Path::Class;
-#my $MAKEFILE = Path::Class::File->new( Cwd::realpath($0) );
-#my $DIR = $MAKEFILE->dir->stringify;
+my $MAKEFILE = Cwd::realpath(__FILE__);
+( my $DIR = $MAKEFILE ) =~ s,/[^/]+\z,,;
 
 name "Wren";
 all_from "lib/Wren.pm";
@@ -12,6 +12,14 @@ all_from "lib/Wren.pm";
 # requires "parent" => undef;
 #install_requires "LWP::Simple" => undef;
 #install_requires "Archive::Zip" => undef;
+
+open my $fh, "<", "$DIR/cpanfile"
+    or die "Couldn't open cpanfile for reading: $!";
+
+my @requires = grep length,
+    map /\A \s* requires \s+ (['"][^;]+) /x, <$fh>;
+
+eval "requires($_)" for @requires;
 
 # Cat the cpanfile here?
 
