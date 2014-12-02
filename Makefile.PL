@@ -25,6 +25,8 @@ eval "requires($_)" for @requires;
 
 test_requires "Test::More" => undef;
 test_requires "Test::Fatal" => undef;
+test_requires "DBIx::Class" => undef;
+test_requires "Pod::Coverage::Moose" => undef;
 # test_requires "SQL::Translator" => undef;
 
 # build_requires "Path::Class" => undef;
