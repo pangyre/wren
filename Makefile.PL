@@ -14,6 +14,10 @@ cpanfile;
 WriteAll;
 
 # pod2markdown?
-system("pod2text lib/Wren.pm > README");
+# system("pod2text lib/Wren.pm > README");
+if ( $Module::Install::AUTHOR )
+{
+    system "pod2markdown lib/Wren.pm README.md";
+}
 
 exit 0;
