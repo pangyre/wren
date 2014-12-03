@@ -7,6 +7,10 @@ requires "HTTP::Status";
 requires "Path::Tiny";
 requires "URI";
 
+on build => sub {
+   requires "Module::CPANfile::Result";
+};
+
 on test => sub {
     requires "Test::More" => 1;
     requires "Test::Fatal" => "0.01";
