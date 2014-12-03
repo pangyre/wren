@@ -42,24 +42,13 @@ package Wren v0.0.1 {
         }
     }
 
-}
-
-"Winter"
-
-__END__
-    #use Path::Tiny;
-    #use HTTP::Negotiate "choose";
-    #use HTTP::Headers::Util qw( split_header_words join_header_words );
-    #use HTML::Entities;
-    #use HTTP::Date;
-    #use Encode qw( encode decode );
-    require Wren::Error;
-
+    # Allow single "env" arg.
     sub BUILDARGS { @_ == 2 ? { env => $_[1] } : { @_[1..$#_-1] } };
 
-    has [qw/ env /] =>
-        is => "ro",
-        required => 1;
+    #has [qw/ env /] =>
+    #    is => "ro",
+    #    isa => sub { ref $_[0] eq "HASH" },
+    #    required => 1;
 
     has "request" =>
         is => "lazy",
@@ -78,6 +67,21 @@ __END__
         is => "ro",
         isa => sub { ref $_[0] eq "ARRAY" },
         default => sub { [] };
+
+    sub to_app {
+        sub { [ HTTP_OK, [ "Content-Type" => "text/plain" ], [ "OHAI\n"] ] }
+    }
+}
+
+"Winter"
+
+__END__
+    #use Path::Tiny;
+    #use HTTP::Negotiate "choose";
+    #use HTTP::Headers::Util qw( split_header_words join_header_words );
+    #use HTML::Entities;
+    #use HTTP::Date;
+    #use Encode qw( encode decode );
 
     sub app {
         Wren::Error->throw("The method ", __PACKAGE__, "->", "app cannot accept arguments")
@@ -129,10 +133,11 @@ Wren - B<Experimental> lightweight web framework.
     #   OR -> give FH type object to response.
     # Finalize ^implied aboe^.
 
-
-=head2 Functions
+=head2 Functions/Muncthods
 
 =over 4
+
+=item * to_app
 
 =item * wren
 
@@ -186,9 +191,15 @@ detailed in Wren::Guide or something.
 
 L<http://github.com/pangyre/wren>.
 
-=head1 See Also
+=head1 Make this Tenable
 
-...
+=over 4
+
+=item * Deployment guide, cookbook
+
+=item * L<http://wiki.nginx.org/XSendfile>
+
+=back
 
 =head1 Author
 
@@ -230,4 +241,154 @@ such damages.
   ];
 
 
+package MSS v0.0.1 {
+    use Moo;
+    use Path::Tiny;
+    # Types...?
+    has [qw/ request response /] =>
+        is => "ro",
+        required => 1,
+        ;
+
+    has "root" =>
+        is => "ro",
+        init_arg => undef,
+        default => sub { path(__FILE__)->parent },
+        ;
+
+    has "static" =>
+        is => "ro",
+        init_arg => undef,
+        default => sub { path(+shift->root,"static") },
+        ;
+
+    sub uri_for {
+        require URI;
+        my $self = shift;
+        URI->new_abs(@_, $self->request->uri);
+    }
+}
+
+my $Routes = "Router::R3"->new(
+    "/" => { "*" => sub {
+        my $self = shift;
+        $self->response->content_type("text/html; charset=utf8");
+        my $html = path($self->static, "index.html");
+        $self->response->body( $html->filehandle("<", ":bytes") );
+    }},
+    "/list" => { "GET" => sub {
+        my $self = shift;
+        $self->response->content_type("application/json");
+        my $imgs = path($self->static, "img");
+        my @dcm = grep /\.dcm$/, $imgs->children;
+        @dcm = map $self->uri_for($_)->as_string,
+            map $_->relative($self->static),
+        @dcm;
+        $self->response->body( to_json( \@dcm ) );
+    }},
+    "/dicom/{study}/{series}/{image}" => { GET => sub {
+        my $self = shift;
+        # Permission check and cache here. Cache for...what's reasonable? 1 hour?
+        return $self->response->body("I CAN HAZ DICOM?");
+        my $dcm = path($self->root,"static/img/dicom.dcm");
+        $self->response->content_type("application/dicom");
+        $self->response->body( $dcm->filehandle("<", ":bytes") );
+    }},
+    "/{resource:.+}" => { "*" => sub {
+        my $self = shift;
+        my $args = shift;
+        my $file = path($self->root, "static", $args->{resource});
+        return $self->response->status(404) unless -f $file;
+        return $self->response->status(403) unless -r _;
+        require MIME::Types;
+        my $type = "MIME::Types"->new->mimeTypeOf($file);
+        # Cache headers? Or middleware?
+        $type->encoding eq "8bit" ?
+            $self->response->content_type(join";", $type->simplified, "charset=utf8")
+            :
+            $self->response->content_type($type->simplified);
+        $self->response->body( $file->filehandle("<", ":bytes") );
+    }},
+    );
+
+sub {
+    my $env = shift; # PSGI env
+    my $mss = "MSS"->new( request => Plack::Request->new($env),
+                          response => Plack::Response->new(HTTP_NOT_FOUND) );
+    # response => Plack::Response->new( status => +HTTP_NOT_FOUND ) );
+    # ROUTING/DISPATCH--------------
+    my ( $match, $captures ) = $Routes->match( $env->{PATH_INFO} );
+    # Defaults.
+    $mss->response->status(HTTP_OK) if $match;
+    $mss->response->content_type("text/plain; charset=utf8");                     
+
+
+    if ( $match )
+    {
+        if ( my $sub = $match->{ $env->{REQUEST_METHOD} } || $match->{"*"} )
+        {
+            eval { $sub->($mss,$captures) } || warn $/, $@, $/;
+        }
+        else
+        {
+            # my @acceptable = $... breaks down without access to match path logic
+            $mss->response->status(406);
+        }
+    }
+
+    $mss->response->body([ encode "UTF-8",
+                           join "\n",
+                           join(" ",
+                                status_message( $mss->response->status ),
+                                decode "UTF-8", $env->{PATH_INFO}),
+                           "match: " . dump($match), dump($captures),
+                           dump($env), dump([keys %INC]) ])
+        unless $mss->response->body;
+
+    $mss->response->finalize;
+};
+
+__DATA__
+
+Consider doing a ->relative($self->static) in the uri_for because it
+could be a no-op maybe when it's already relative but it will "do the
+right thing" with web paths... not application aware though so it's in
+fact sort of broken as is... Dispatch much be application object and
+not just an irreversible run time map.
+
+=pod
+
+=encoding utf8
+
+=head1 Name
+
+=head1 Synopsis
+
+=head1 Description
+
+=over 4
+
+=item *
+
+=back
+
+=head1 Code Repository
+
+L<http://github.com/pangyre/>.
+
+=head1 See Also
+
+WADO spec: L<http://medical.nema.org/Dicom/2011/11_18pu.pdf>.
+
+Repository: L<https://bitbucket.org/pangyre/studyshare-html5-viewer>
+
+=head1 Author
+
+Ashley Pond V E<middot> ashley@cpan.org.
+
+=head1 License
+
+None!
+
+=cut
 

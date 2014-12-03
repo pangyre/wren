@@ -3,6 +3,7 @@ requires "Moo";
 requires "MooX::HandlesVia";
 requires "MooX::late";
 requires "Plack";
+requires "Plack::Middleware::Headers";
 requires "HTTP::Status";
 requires "Path::Tiny";
 requires "URI";
