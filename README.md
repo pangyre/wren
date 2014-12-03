@@ -18,8 +18,9 @@ Wren - **Experimental** lightweight web framework.
     #   OR -> give FH type object to response.
     # Finalize ^implied aboe^.
 
-## Functions
+## Functions/Muncthods
 
+- to\_app
 - wren
 - add\_model
 
@@ -61,9 +62,10 @@ detailed in Wren::Guide or something.
 
 [http://github.com/pangyre/wren](http://github.com/pangyre/wren).
 
-# See Also
+# Make this Tenable
 
-...
+- Deployment guide, cookbook
+- [http://wiki.nginx.org/XSendfile](http://wiki.nginx.org/XSendfile)
 
 # Author
 
@@ -95,3 +97,29 @@ rendered inaccurate or losses sustained by you or third parties or a
 failure of the software to operate with any other software), even if
 such holder or other party has been advised of the possibility of
 such damages.
+
+# Name
+
+# Synopsis
+
+# Description
+
+- 
+
+# Code Repository
+
+[http://github.com/pangyre/](http://github.com/pangyre/).
+
+# See Also
+
+WADO spec: [http://medical.nema.org/Dicom/2011/11\_18pu.pdf](http://medical.nema.org/Dicom/2011/11_18pu.pdf).
+
+Repository: [https://bitbucket.org/pangyre/studyshare-html5-viewer](https://bitbucket.org/pangyre/studyshare-html5-viewer)
+
+# Author
+
+Ashley Pond V · ashley@cpan.org.
+
+# License
+
+None!
