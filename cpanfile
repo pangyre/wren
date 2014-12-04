@@ -15,7 +15,7 @@ on build => sub {
 on test => sub {
     requires "Test::More" => 1;
     requires "Test::Fatal" => "0.01";
-    requires "DBIx::Class" => "0.082";
     requires "SQL::Translator" => "0.11018",
+    requires "DBIx::Class" => "0.082";
     requires "Pod::Coverage::Moose" => "0.05";
 };

@@ -1,6 +1,8 @@
 package WrenApp v0.0.1 {
+    use Moo;
     use strictures;
     use Wren;
+    extends "Wren";
 
     add_model "DB" =>
         class => "WrenApp::Schema",
@@ -11,7 +13,8 @@ package WrenApp v0.0.1 {
                             AutoCommit => 1,
                             ChopBlanks => 1,
                             sqlite_unicode => 1, } ];
-
+#    route "/" =>
+#        ...
 }
 
 1;

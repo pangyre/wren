@@ -1,3 +1,5 @@
+#!/usr/bin/env perl /usr/local/bin/plackup -r
+
 my $dir;
 BEGIN {
     use File::Spec;

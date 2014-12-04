@@ -356,6 +356,8 @@ right thing" with web paths... not application aware though so it's in
 fact sort of broken as is... Dispatch much be application object and
 not just an irreversible run time map.
 
+Should have a sendfile v self-managed static server.
+
 =pod
 
 =encoding utf8
@@ -392,3 +394,7 @@ None!
 
 =cut
 
+        use Data::Dump "dump";
+        my $class = shift;
+        eval $class . "::" . lc $class . " = sub { +shift->to_app }";
+        print STDERR $class, " -> ", dump(caller);
