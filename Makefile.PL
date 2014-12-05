@@ -2,7 +2,7 @@ use inc::Module::Install;
 use strict;
 use warnings;
 
-perl_version_from "lib/Wren.pm";
+# Apparently a no-op, perl_version_from "lib/Wren.pm";
 
 requires_external_bin "git";
 requires_external_bin "cpanm";
