@@ -2,12 +2,13 @@ use inc::Module::Install;
 use strict;
 use warnings;
 
+requires_external_bin "git";
+requires_external_bin "cpanm";
+
 unless ( $Module::Install::AUTHOR )
 {
-    requires_external_bin "git";
-    requires_external_bin "cpanm";
     0 == system qw{ cpanm git://github.com/stevan/p5-mop-redux.git }
-    or die "Couldn't install mop from github repo: $!";
+        or die "Couldn't install mop from github repo: $!";
 }
 
 name "Wren";
