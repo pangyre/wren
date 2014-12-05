@@ -68,8 +68,12 @@ subtest "..." => sub {
     };
 
     subtest "Test a flat model (a counter)" => sub {
+        use Time::HiRes qw( gettimeofday tv_interval );
+
         my @ok;
-        my $count = 101;
+        my $count = 1_000;
+
+        my $t0 = [gettimeofday];
         for ( 1 .. $count )
         {
             test_psgi $app, sub {
@@ -78,7 +82,14 @@ subtest "..." => sub {
                 push @ok, "ok" if  $res->content =~ /\b$_\b/;
             };
         }
+
+        my $elapsed = tv_interval ( $t0, [gettimeofday]);
+        note sprintf "%d requests per second",
+            $count / $elapsed;
+
         cmp_ok @ok, "==", $count, "Basic counter model works";
+
+        done_testing(1);
     };
 
     done_testing();

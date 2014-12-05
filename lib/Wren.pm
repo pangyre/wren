@@ -69,7 +69,7 @@ class Wren v0.0.1 with Wren::Error {
         "Plack::Response"
             ->new( HTTP_NOT_FOUND,
                    [ "Content-Type" => "text/plain" ],
-                   [ status_message(HTTP_NOT_FOUND), " : ", $!request->path ] );
+                   [ status_message(HTTP_NOT_FOUND), ": ", $!request->path ] );
     };
 
     method _build_request {
@@ -97,7 +97,6 @@ class Wren v0.0.1 with Wren::Error {
             # return [ 200, [ "Content-Type" => "text/plain" ], [ "OHAI\n"] ];
         }
     }
-
 };
 
 "Winter";
