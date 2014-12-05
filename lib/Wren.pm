@@ -105,44 +105,6 @@ class Wren v0.0.1 with Wren::Error {
 
 __END__
 
-    method clear_env { undef $!env };
-    method clear_request { undef $!request };
-    method clear_response { undef $!response };
-
-    # use Exporter "import";
-    our @EXPORT = qw( add_model wren );
-    sub import {
-        __PACKAGE__->export_to_level(1, @_);
-        $wren = __PACKAGE__->new;
-    }
-
-    has "models" =>
-        is => "ro",
-        traits  => ["Hash"],
-        default => sub { {} },
-        handles => {
-            model => "get",
-            set_model => "set",
-        };
-
-    sub add_model {
-        my $name = shift;
-        my %arg = @_;
-        eval "use $arg{class}";
-        Wren::Error->throw("Couldn't load $arg{class}: ", $@) if $@;
-        my $schema = "$arg{class}"->connect( @{ $arg{connect_info} } );
-        $wren->set_model( $name => $schema ); # iterate on named Sources?
-        for my $source ( $wren->model("DB")->sources )
-        {
-            $wren->set_model( join("::",$name,$source) => $schema->resultset($source) );
-        }
-    }
-
-
-    # use Exporter "import";
-    # method new ($class) { $class->next::method };
-    # sub import { Exporter->export_to_level(1, @_) }
-
 =pod
 
 =encoding utf-8
@@ -152,6 +114,8 @@ __END__
 Wren - B<Experimental> lightweight web framework.
 
 =head1 Synopsis
+
+DOCS ARE ENTIRELY UP THE AIR ON THIS BRANCH AND REPRESENT NOTHING RELIABLE.
 
 =head1 Description
 
@@ -275,115 +239,6 @@ such damages.
   ];
 
 
-package MSS v0.0.1 {
-    use Moo;
-    use Path::Tiny;
-    # Types...?
-    has [qw/ request response /] =>
-        is => "ro",
-        required => 1,
-        ;
-
-    has "root" =>
-        is => "ro",
-        init_arg => undef,
-        default => sub { path(__FILE__)->parent },
-        ;
-
-    has "static" =>
-        is => "ro",
-        init_arg => undef,
-        default => sub { path(+shift->root,"static") },
-        ;
-
-    sub uri_for {
-        require URI;
-        my $self = shift;
-        URI->new_abs(@_, $self->request->uri);
-    }
-}
-
-my $Routes = "Router::R3"->new(
-    "/" => { "*" => sub {
-        my $self = shift;
-        $self->response->content_type("text/html; charset=utf8");
-        my $html = path($self->static, "index.html");
-        $self->response->body( $html->filehandle("<", ":bytes") );
-    }},
-    "/list" => { "GET" => sub {
-        my $self = shift;
-        $self->response->content_type("application/json");
-        my $imgs = path($self->static, "img");
-        my @dcm = grep /\.dcm$/, $imgs->children;
-        @dcm = map $self->uri_for($_)->as_string,
-            map $_->relative($self->static),
-        @dcm;
-        $self->response->body( to_json( \@dcm ) );
-    }},
-    "/dicom/{study}/{series}/{image}" => { GET => sub {
-        my $self = shift;
-        # Permission check and cache here. Cache for...what's reasonable? 1 hour?
-        return $self->response->body("I CAN HAZ DICOM?");
-        my $dcm = path($self->root,"static/img/dicom.dcm");
-        $self->response->content_type("application/dicom");
-        $self->response->body( $dcm->filehandle("<", ":bytes") );
-    }},
-    "/{resource:.+}" => { "*" => sub {
-        my $self = shift;
-        my $args = shift;
-        my $file = path($self->root, "static", $args->{resource});
-        return $self->response->status(404) unless -f $file;
-        return $self->response->status(403) unless -r _;
-        require MIME::Types;
-        my $type = "MIME::Types"->new->mimeTypeOf($file);
-        # Cache headers? Or middleware?
-        $type->encoding eq "8bit" ?
-            $self->response->content_type(join";", $type->simplified, "charset=utf8")
-            :
-            $self->response->content_type($type->simplified);
-        $self->response->body( $file->filehandle("<", ":bytes") );
-    }},
-    );
-
-sub {
-    my $env = shift; # PSGI env
-    my $mss = "MSS"->new( request => Plack::Request->new($env),
-                          response => Plack::Response->new(HTTP_NOT_FOUND) );
-    # response => Plack::Response->new( status => +HTTP_NOT_FOUND ) );
-    # ROUTING/DISPATCH--------------
-    my ( $match, $captures ) = $Routes->match( $env->{PATH_INFO} );
-    # Defaults.
-    $mss->response->status(HTTP_OK) if $match;
-    $mss->response->content_type("text/plain; charset=utf8");
-
-
-    if ( $match )
-    {
-        if ( my $sub = $match->{ $env->{REQUEST_METHOD} } || $match->{"*"} )
-        {
-            eval { $sub->($mss,$captures) } || warn $/, $@, $/;
-        }
-        else
-        {
-            # my @acceptable = $... breaks down without access to match path logic
-            $mss->response->status(406);
-        }
-    }
-
-    $mss->response->body([ encode "UTF-8",
-                           join "\n",
-                           join(" ",
-                                status_message( $mss->response->status ),
-                                decode "UTF-8", $env->{PATH_INFO}),
-                           "match: " . dump($match), dump($captures),
-                           dump($env), dump([keys %INC]) ])
-        unless $mss->response->body;
-
-    $mss->response->finalize;
-};
-
-__DATA__
-
 Consider doing a ->relative($self->static) in the uri_for because it
 could be a no-op maybe when it's already relative but it will "do the
 right thing" with web paths... not application aware though so it's in
@@ -391,40 +246,4 @@ fact sort of broken as is... Dispatch much be application object and
 not just an irreversible run time map.
 
 Should have a sendfile v self-managed static server.
-
-=pod
-
-=encoding utf8
-
-=head1 Name
-
-=head1 Synopsis
-
-=head1 Description
-
-=over 4
-
-=item *
-
-=back
-
-=head1 Code Repository
-
-L<http://github.com/pangyre/>.
-
-=head1 See Also
-
-WADO spec: L<http://medical.nema.org/Dicom/2011/11_18pu.pdf>.
-
-Repository: L<https://bitbucket.org/pangyre/studyshare-html5-viewer>
-
-=head1 Author
-
-Ashley Pond V E<middot> ashley@cpan.org.
-
-=head1 License
-
-None!
-
-=cut
 

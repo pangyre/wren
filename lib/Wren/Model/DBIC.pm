@@ -1,8 +1,11 @@
 use 5.16.2;
 use mop;
+use strictures;
+
+# class Wren::Model::DBIC extends Wren::Model with Wren::Error {
 
 class Wren::Model::DBIC extends Wren::Model {
-#class Wren::Model::DBIC {
+
     method instantiate ( $class : $name, %arg ) {
         # Provide for bootstrapping from connection string, I think.
         my $model_class = delete $arg{class};
@@ -29,39 +32,13 @@ class Wren::Model::DBIC extends Wren::Model {
 
 __END__
 
-
-    add_model "DB" =>
-        class => "WrenApp::Schema",
-        connect_info => [ "dbi:SQLite::memory:",
-                          undef,
-                          undef,
-                          { RaiseError => 1,
-                            AutoCommit => 1,
-                            ChopBlanks => 1,
-                            sqlite_unicode => 1, } ];
-    sub add_model {
-        my $name = shift;
-        my %arg = @_;
-        eval "use $arg{class}";
-        Wren::Error->throw("Couldn't load $arg{class}: ", $@) if $@;
-        my $schema = "$arg{class}"->connect( @{ $arg{connect_info} } );
-        $wren->set_model( $name => $schema ); # iterate on named Sources?
-        for my $source ( $wren->model("DB")->sources )
-        {
-            $wren->set_model( join("::",$name,$source) => $schema->resultset($source) );
-        }
-    }
-
-
-
-
 =pod
 
 =encoding utf8
 
 =head1 Name
 
-Wren::Error - ...
+Wren::Model::DBIC - ...
 
 =head1 Synopsis
 
@@ -69,11 +46,7 @@ Wren::Error - ...
 
 =over 4
 
-=item * stacktrace
-
-=item * as_string
-
-=item * throw
+=item * instantiate
 
 =back
 

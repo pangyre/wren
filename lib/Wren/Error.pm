@@ -1,10 +1,16 @@
 use 5.16.2;
 use mop;
+use strictures;
 
 class Wren::Error {
     use Devel::StackTrace;
-    use overload '""' => sub { +shift->message };
+
     has $!message is ro;
+
+    use overload '""' => sub { +shift->message };
+    #method to_string is overload('""') {
+    #    "<foo value=$!val />";
+    #}
 
     #method new ($class: $msg) {
     #    $class->next::method( message => $msg );
@@ -13,12 +19,6 @@ class Wren::Error {
     method throw {
         die @_; # +shift->new(join " ", @_);
     };
-
-    #method to_string is overload('""') {
-    #    "<foo value=$!val />";
-    #}
-
-
 };
 
 

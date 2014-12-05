@@ -2,20 +2,21 @@ use 5.16.2;
 use mop;
 
 class Wren::Model with Wren::Error {
+
     has $!name is ro;
     has $!model is ro;
 
-    method compose ($class: $name, %arg ) {
+    method compose ($class: $name, %arg )
+    {
         my $type = delete $arg{type};
         if ( $type )
         {
             eval "use $type; 1" or die "OHAI: $@"; #Wren::Error->throw($@);
             # eval { require "$type"; } or die $@; #Wren::Error->throw($@);
             # Wren::Error->throw("Couldn't load model type $type: ", $@) if $@;
-            # say "\n$type->new(", join(",", %arg), ")";
             return $type->instantiate( $name, %arg );
         }
-        die;
+        die "SHOULDN'T GET HERE YET";
         ## my $constructor = $arg{constructor} || "new";
         #my $model_class = delete $arg{class};
         #my $constructor = delete $arg{constructor} || "new";
@@ -26,38 +27,10 @@ class Wren::Model with Wren::Error {
         #$class->next::method( name => $name, model => $model );
     }
 
-    method throw {
-        die +shift->new(join " ", @_);
-    };
-
 };
 
 
 __END__
-    add_model "DB" =>
-        class => "WrenApp::Schema",
-        connect_info => [ "dbi:SQLite::memory:",
-                          undef,
-                          undef,
-                          { RaiseError => 1,
-                            AutoCommit => 1,
-                            ChopBlanks => 1,
-                            sqlite_unicode => 1, } ];
-    sub add_model {
-        my $name = shift;
-        my %arg = @_;
-        eval "use $arg{class}";
-        Wren::Error->throw("Couldn't load $arg{class}: ", $@) if $@;
-        my $schema = "$arg{class}"->connect( @{ $arg{connect_info} } );
-        $wren->set_model( $name => $schema ); # iterate on named Sources?
-        for my $source ( $wren->model("DB")->sources )
-        {
-            $wren->set_model( join("::",$name,$source) => $schema->resultset($source) );
-        }
-    }
-
-
-
 
 =pod
 
@@ -65,7 +38,7 @@ __END__
 
 =head1 Name
 
-Wren::Error - ...
+Wren::Model - ...
 
 =head1 Synopsis
 
@@ -73,11 +46,7 @@ Wren::Error - ...
 
 =over 4
 
-=item * stacktrace
-
-=item * as_string
-
-=item * throw
+=item * compose
 
 =back
 
