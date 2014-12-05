@@ -2,6 +2,8 @@ use inc::Module::Install;
 use strict;
 use warnings;
 
+perl_version "5.16.2";
+
 requires_external_bin "git";
 requires_external_bin "cpanm";
 
@@ -17,6 +19,7 @@ all_from "lib/Wren.pm";
 # This is stupid... tools should do it on their own.
 use lib "lib";
 require Wren;
+
 version "Wren"->VERSION;
 
 cpanfile;
