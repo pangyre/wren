@@ -89,8 +89,7 @@ class Wren v0.0.1 with Wren::Error {
             $!env = shift;
             my ( $match, $captures ) = $!router->match( $!env->{PATH_INFO} );
 
-            use Data::Dump "dump";
-            # say dump $match;
+            # use Data::Dump "dump"; say dump $match;
 
             my $method = $match->{method} || return $!response->finalize; # Default is 404.
             $self->$method( $captures );
