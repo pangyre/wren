@@ -1,10 +1,34 @@
-use 5.14.2;
-package Wren::Error {
-    use Moo;
+use 5.16.2;
+use mop;
+
+class Wren::Error {
     use Devel::StackTrace;
     use overload '""' => sub { +shift->message };
+    has $!message is ro;
 
-    sub BUILDARGS { @_ == 2 ? { message => $_[1] } : { @_[1..$#_-1] } };
+    #method new ($class: $msg) {
+    #    $class->next::method( message => $msg );
+    #}
+
+    method throw {
+        die @_; # +shift->new(join " ", @_);
+    };
+
+    #method to_string is overload('""') {
+    #    "<foo value=$!val />";
+    #}
+
+
+};
+
+
+__END__
+        die @_;
+        my %arg = @_ == 1 ?
+            ( message => +shift )
+            :
+            @_;
+        $class->next::method(%arg);
 
     has message =>
         is => "lazy",
@@ -19,13 +43,6 @@ package Wren::Error {
         $self->message;
     }
 
-    sub throw { die +shift->new(join " ", @_) }
-
-};
-
-"Error! Error! Error!";
-
-__END__
 
 =pod
 

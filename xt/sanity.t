@@ -29,11 +29,19 @@ subtest "Walk everything: use/Pod/coverage/spelling" => sub {
 
         $count += 3;
     }
-
     done_testing($count);
 };
 
-done_testing(1);
+# This is in kitchen-sink.t right now
+#subtest "..." => sub {
+#    my $test_lib = path( path(__FILE__)->parent->parent, "t/lib" );
+#    push @INC, "$test_lib";
+#    use_ok("WrenApp");
+#    my $app = WrenApp->to_app;
+#    done_testing();
+#};
+
+done_testing();
 
 __END__
 

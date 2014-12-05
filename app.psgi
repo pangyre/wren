@@ -14,8 +14,6 @@ my $favicon = MIME::Base64::decode_base64(q{AAABAAEAEBAQAAEABAAoAQAAFgAAACgAAAAQ
 use HTTP::Date "time2str";
 my $last_mod = time2str( time() );
 
-
-
 my $app = builder {
     enable "ConditionalGET";
     enable Headers =>
@@ -28,7 +26,7 @@ my $app = builder {
     mount "/favicon.ico" => sub { [ 200, [ "Last-Modified" => $last_mod, "Content-Type" => "image/x-icon" ],
                                     [ $favicon ] ] };
 
-    mount "/" => wren->to_app;
+    mount "/" => Wren->new->to_app;
 };
 
 __END__

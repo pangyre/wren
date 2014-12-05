@@ -1,20 +1,116 @@
-use 5.14.2;
+use 5.16.2;
+use mop;
+our $AUTHORITY = "cpan:ASHLEY";
 
-package Wren v0.0.1 {
-    use Moo;
-    use MooX::late;
-    use MooX::HandlesVia;
-    use Plack::Request;
-    use Plack::Response;
+class Wren v0.0.1 with Wren::Error {
+    use strictures;
     use HTTP::Status ":constants", "status_message";
-    use Wren::Error;
-    use parent "Exporter";
+    use Exporter;# "export_to_level";
+    use Router::R3;
+
+    has $!env      is ro;
+    has $!request  is ro, lazy = $_->_build_request;
+    has $!response is ro, lazy = $_->_build_response;
+    has $!router   is ro, lazy = $_->_build_routes;
+    has $!models   is ro, lazy = $_->_build_models;
+
+    sub import {
+        shift->export_to_level(1); # handle our exports
+    }
+
+    our %_models;
+    sub add_model {
+        my $name = shift;
+        require Wren::Model;
+        if ( @_ == 1 and ref $_[0] eq "CODE" )
+        {
+            $_models{$name} = +shift;
+        }
+        else
+        {
+            $_models{$_->name} = $_ for Wren::Model->compose($name => @_);
+        }
+    }
+
+    method _build_models {
+        # no warnings "redefine";
+        # Not this... *add_model = sub { ... };
+        \%_models; # UNDEFINE OR REDEFINE add_model here to error out post _build?
+    };
+
+    our @_routes;
+    sub add_route {
+        my $route = shift;
+        my %arg = ( "http" => "*",
+                    "method" => undef,
+                   @_ );
+        $arg{route} = $route;
+        push @_routes, $route => \%arg;
+    }
+
+    method _build_routes {
+        "Router::R3"->new(@_routes);
+    };
+
+    method model ($name) {
+        use Scalar::Util "blessed";
+        my $metamodel = $!models->{$name} || die "No such model: $name"; # Wren::Error->throw("No such model: $name");
+        return $metamodel->() unless blessed $metamodel;
+        my $model = $metamodel->model;
+        ref $model eq "CODE" ?
+            $model->()
+                :
+            $model;
+    };
+
+
+    method _build_response {
+        require Plack::Response;
+        "Plack::Response"
+            ->new( HTTP_NOT_FOUND,
+                   [ "Content-Type" => "text/plain" ],
+                   [ status_message(HTTP_NOT_FOUND), " : ", $!request->path ] );
+    };
+
+    method _build_request {
+        require Plack::Request;
+        $!request = "Plack::Request"->new( $!env );
+    };
+
+    method reset {
+        undef $!env;
+        undef $!request;
+        undef $!response;
+    };
+
+    method to_app {
+        sub {
+            $self->reset;
+            $!env = shift;
+            my ( $match, $captures ) = $!router->match( $!env->{PATH_INFO} );
+
+            use Data::Dump "dump";
+            # say dump $match;
+
+            my $method = $match->{method} || return $!response->finalize; # Default is 404.
+            $self->$method( $captures );
+            $!response->finalize;
+            # return [ 200, [ "Content-Type" => "text/plain" ], [ "OHAI\n"] ];
+        }
+    }
+
+};
+
+"Winter";
+
+__END__
+
+    method clear_env { undef $!env };
+    method clear_request { undef $!request };
+    method clear_response { undef $!response };
+
     # use Exporter "import";
     our @EXPORT = qw( add_model wren );
-
-    my $wren;
-    sub wren { $wren } # No, but for now...
-
     sub import {
         __PACKAGE__->export_to_level(1, @_);
         $wren = __PACKAGE__->new;
@@ -42,72 +138,10 @@ package Wren v0.0.1 {
         }
     }
 
-    # Allow single "env" arg.
-    sub BUILDARGS { @_ == 2 ? { env => $_[1] } : { @_[1..$#_-1] } };
 
-    #has [qw/ env /] =>
-    #    is => "ro",
-    #    isa => sub { ref $_[0] eq "HASH" },
-    #    required => 1;
-
-    has "request" =>
-        is => "lazy",
-        # Maybe not all these shortcuts?
-        # handles => [qw/ parameters query_parameters body_parameters referer user_agent param base uri /],
-        default => sub { "Plack::Request"->new( +shift->env ) };
-        
-    has "response" =>
-        is => "lazy",
-        default => sub {
-            "Plack::Response"->new(HTTP_NOT_FOUND,
-                                   [ Content_Type => "text/plain; charset=utf-8" ]);
-        };
-
-    has "errors" =>
-        is => "ro",
-        isa => sub { ref $_[0] eq "ARRAY" },
-        default => sub { [] };
-
-    sub to_app {
-        sub { [ HTTP_OK, [ "Content-Type" => "text/plain" ], [ "OHAI\n"] ] }
-    }
-}
-
-"Winter"
-
-__END__
-    #use Path::Tiny;
-    #use HTTP::Negotiate "choose";
-    #use HTTP::Headers::Util qw( split_header_words join_header_words );
-    #use HTML::Entities;
-    #use HTTP::Date;
-    #use Encode qw( encode decode );
-
-    sub app {
-        Wren::Error->throw("The method ", __PACKAGE__, "->", "app cannot accept arguments")
-            unless $_[0] eq __PACKAGE__ and @_ == 1;
-
-        sub {
-            my $self = __PACKAGE__->new( $_[0] );
-            eval {
-                1; # Dispatch stuff...
-            };
-
-            $self->response->status(HTTP_NOT_ACCEPTABLE) if $@;
-
-            $self->response->body([ join(": ", $self->response->status, status_message( $self->response->status )), 
-                                    $/, "Requested resource: ", $self->request->path,
-                                    $/, $/, $@ ])
-                unless $self->response->body;
-
-            $self->response->finalize;
-        };
-    }
-};
-
-"Winter";
-
-__END__
+    # use Exporter "import";
+    # method new ($class) { $class->next::method };
+    # sub import { Exporter->export_to_level(1, @_) }
 
 =pod
 
@@ -320,7 +354,7 @@ sub {
     my ( $match, $captures ) = $Routes->match( $env->{PATH_INFO} );
     # Defaults.
     $mss->response->status(HTTP_OK) if $match;
-    $mss->response->content_type("text/plain; charset=utf8");                     
+    $mss->response->content_type("text/plain; charset=utf8");
 
 
     if ( $match )
@@ -355,6 +389,8 @@ could be a no-op maybe when it's already relative but it will "do the
 right thing" with web paths... not application aware though so it's in
 fact sort of broken as is... Dispatch much be application object and
 not just an irreversible run time map.
+
+Should have a sendfile v self-managed static server.
 
 =pod
 

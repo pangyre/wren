@@ -2,17 +2,26 @@ use strictures;
 use Test::More;
 use Test::Fatal;
 use Path::Tiny;
-my $lib;
+my $dir;
 BEGIN {
-    $lib = path( path( __FILE__ )->parent, "lib" );
+    $dir = path( path( __FILE__ )->parent->parent );
 }
-use lib "$lib";
+use lib "$dir/t/lib", "$dir/lib";
 
-use_ok("WrenApp");
-isa_ok WrenApp->wren, "Wren", "Wren object is created as side-effect of use/import";
+subtest "Some load and ISA stuff" => sub {
+    use_ok("Wren");
+    isa_ok Wren->new, "Wren";
+
+    use_ok("WrenApp");
+    isa_ok WrenApp->new, "Wren";
+    isa_ok WrenApp->new, "WrenApp";
+
+    done_testing();
+};
 
 subtest "DBIx::Class model" => sub {
-    my $wren = WrenApp->wren;
+
+    my $wren = WrenApp->new;
     isa_ok my $schema = $wren->model("DB"), "DBIx::Class::Schema";
     is exception { $schema->deploy }, undef,
         "No exception on schema->deploy";
@@ -33,6 +42,6 @@ subtest "DBIx::Class model" => sub {
     done_testing(5);
 };
 
-done_testing(3);
+done_testing(2);
 
 __END__
