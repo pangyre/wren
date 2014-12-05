@@ -1,7 +1,5 @@
+# Only TRIAL so far, requires "mop" => "0.03";
 requires "parent";
-requires "Moo";
-requires "MooX::HandlesVia";
-requires "MooX::late";
 requires "Plack";
 requires "Plack::Middleware::Headers";
 requires "HTTP::Status";
