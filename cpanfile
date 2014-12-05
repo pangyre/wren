@@ -5,6 +5,7 @@ requires "Plack::Middleware::Headers";
 requires "HTTP::Status";
 requires "Path::Tiny";
 requires "URI";
+requires "Router::R3";
 
 on build => sub {
    requires "Module::CPANfile::Result";

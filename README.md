@@ -4,6 +4,8 @@ Wren - **Experimental** lightweight web framework.
 
 # Synopsis
 
+DOCS ARE ENTIRELY UP THE AIR ON THIS BRANCH AND REPRESENT NOTHING RELIABLE.
+
 # Description
 
     # Config, build
