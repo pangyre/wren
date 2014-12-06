@@ -59,7 +59,7 @@ package Wren v0.0.1 {
     sub _build_response {
         require Plack::Response;
         "Plack::Response"->new( HTTP_NOT_FOUND,
-                                [ "Content-Type" => "text/plain" ] );
+                                [ "Content-Type" => "text/plain; charset=utf-8" ] );
     }
 
 #    sub import {

@@ -1,5 +1,8 @@
 requires "parent";
 requires "Moo";
+requires "MooX::late";
+requires "MooX::HandlesVia";
+
 requires "Scalar::Util";
 requires "strictures";
 requires "Plack";
