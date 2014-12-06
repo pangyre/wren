@@ -1,5 +1,6 @@
 # Only TRIAL so far, requires "mop" => "0.03";
 requires "parent";
+requires "strictures";
 requires "Plack";
 requires "Plack::Middleware::Headers";
 requires "HTTP::Status";

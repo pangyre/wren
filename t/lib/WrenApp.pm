@@ -25,6 +25,9 @@ class WrenApp v0.0.1 extends Wren {
     add_route "/counter" =>
         "method" => "counter";
 
+    add_route "/exception" =>
+        "method" => "exception";
+
     method home {
         $self->response->status(200); # This is default on match from Wren.
         $self->response->body("OHAI\n");
@@ -33,11 +36,18 @@ class WrenApp v0.0.1 extends Wren {
     method counter {
         $self->response->body( $self->model("Counter") );
     };
+
+    method exception {
+        $self->response->status(200);
+        $self->throw("NO CAN HAZ");
+    };
 }
 
 1;
 
 __END__
+
+* Auto document routes to POD/map, allow a description?
 
     "/" => { "*" => sub {
         my $self = shift;

@@ -1,11 +1,11 @@
 use 5.16.2;
-use mop;
 use strictures;
+use mop;
 
 class Wren::Error {
     use Devel::StackTrace;
-
     has $!message is ro;
+    has $!stacktrace is ro;
 
     use overload '""' => sub { +shift->message };
     #method to_string is overload('""') {
@@ -17,7 +17,10 @@ class Wren::Error {
     #}
 
     method throw {
-        die @_; # +shift->new(join " ", @_);
+        use Carp;
+        croak @_;
+        die Devel::StackTrace->new;
+        # die @_; # +shift->new(join " ", @_);
     };
 };
 

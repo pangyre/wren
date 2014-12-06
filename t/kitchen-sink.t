@@ -42,11 +42,13 @@ subtest "Walk everything: use/Pod/coverage/spelling" => sub {
 };
 
 subtest "Some exception stuff" => sub {
-    ok 1;
+    plan skip_all => "Write these, please";
     done_testing();
 };
 
-subtest "..." => sub {
+
+
+subtest "Excercise the test app WrenApp" => sub {
 
     my $app = WrenApp->new->to_app;
 
@@ -64,7 +66,15 @@ subtest "..." => sub {
     test_psgi $app, sub {
         my $cb  = shift;
         my $res = $cb->(GET "/of course not");
-        like $res->content, qr/Not found/i, "404 is 404";
+        is $res->code, 404, "Status is 404";
+        like $res->content, qr/Not Found/i, '404 content contains "Not Found"';
+    };
+
+    test_psgi $app, sub {
+        my $cb  = shift;
+        my $res = $cb->(GET "/exception");
+        is $res->code, 500, "Status is 500";
+        like $res->content, qr/Internal Server Error/i, '500 content contains "Internal Server Error"';
     };
 
     subtest "Test a flat model (a counter)" => sub {

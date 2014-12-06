@@ -1,9 +1,9 @@
 use 5.16.2;
+use strictures;
 use mop;
 our $AUTHORITY = "cpan:ASHLEY";
 
 class Wren v0.0.1 with Wren::Error {
-    use strictures;
     use HTTP::Status ":constants", "status_message";
     use Exporter;# "export_to_level";
     use Router::R3;
@@ -13,6 +13,7 @@ class Wren v0.0.1 with Wren::Error {
     has $!response is ro, lazy = $_->_build_response;
     has $!router   is ro, lazy = $_->_build_routes;
     has $!models   is ro, lazy = $_->_build_models;
+    has $!errors   is rw = [];
 
     sub import {
         shift->export_to_level(1); # handle our exports
@@ -68,8 +69,7 @@ class Wren v0.0.1 with Wren::Error {
         require Plack::Response;
         "Plack::Response"
             ->new( HTTP_NOT_FOUND,
-                   [ "Content-Type" => "text/plain" ],
-                   [ status_message(HTTP_NOT_FOUND), ": ", $!request->path ] );
+                   [ "Content-Type" => "text/plain" ] );
     };
 
     method _build_request {
@@ -92,7 +92,20 @@ class Wren v0.0.1 with Wren::Error {
             # use Data::Dump "dump"; say dump $match;
 
             my $method = $match->{method} || return $!response->finalize; # Default is 404.
-            $self->$method( $captures );
+            eval {
+                $self->$method( $captures );
+            };
+            push @{$!errors}, $@ if $@;
+
+            if ( @{$!errors} )
+            {
+                $!response->status(500);
+                $!response->body( join "\n", @{$!errors} );
+            }
+
+            #$!response->status(HTTP_NOT_FOUND);# unless $!response->status;
+            #$!response->body   || $!response->body([ status_message( $!response->status ), ": ", $!request->path ]);
+
             $!response->finalize;
             # return [ 200, [ "Content-Type" => "text/plain" ], [ "OHAI\n"] ];
         }
