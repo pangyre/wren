@@ -1,12 +1,12 @@
-use 5.16.2;
-use mop;
 use strictures;
 
-# class Wren::Model::DBIC extends Wren::Model with Wren::Error {
+package Wren::Model::DBIC {
+    use Moo;
+    extends "Wren::Model";
+    no warnings "redefine"; # WHY?! Is this the eval "use ..." stuff?
 
-class Wren::Model::DBIC extends Wren::Model {
-
-    method instantiate ( $class : $name, %arg ) {
+    sub instantiate {
+        my ( $class, $name, %arg ) = @_;
         # Provide for bootstrapping from connection string, I think.
         my $model_class = delete $arg{class};
         eval "use $model_class; 1";
@@ -29,6 +29,7 @@ class Wren::Model::DBIC extends Wren::Model {
     }
 };
 
+1;
 
 __END__
 
