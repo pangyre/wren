@@ -1,17 +1,25 @@
-use 5.16.2;
-use mop;
+use strictures;
 
-class Wren::Model with Wren::Error {
+package Wren::Model {
+    use Moo;
+    use Wren::Error;
 
-    has $!name is ro;
-    has $!model is ro;
+    has name =>
+        is => "ro",
+        required => 1,
+        ;
 
-    method compose ($class: $name, %arg )
-    {
+    has model =>
+        is => "ro",
+        required => 1,
+        ;
+
+    sub compose {
+        my ( $self, $name, %arg ) = @_;
         my $type = delete $arg{type};
         if ( $type )
         {
-            eval "use $type; 1" or die "OHAI: $@"; #Wren::Error->throw($@);
+            eval "use $type; 1" or Wren::Error->throw($@);
             # eval { require "$type"; } or die $@; #Wren::Error->throw($@);
             # Wren::Error->throw("Couldn't load model type $type: ", $@) if $@;
             return $type->instantiate( $name, %arg );
@@ -29,6 +37,7 @@ class Wren::Model with Wren::Error {
 
 };
 
+"Cactus";
 
 __END__
 
@@ -46,7 +55,13 @@ Wren::Model - ...
 
 =over 4
 
+=item * new
+
 =item * compose
+
+=item * name
+
+=item * model
 
 =back
 

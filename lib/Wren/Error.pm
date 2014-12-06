@@ -1,37 +1,13 @@
 use 5.16.2;
 use strictures;
-use mop;
 
-class Wren::Error {
+package Wren::Error {
+    use Moo;
+    use Scalar::Util "blessed";
     use Devel::StackTrace;
-    has $!message is ro;
-    has $!stacktrace is ro;
-
     use overload '""' => sub { +shift->message };
-    #method to_string is overload('""') {
-    #    "<foo value=$!val />";
-    #}
 
-    #method new ($class: $msg) {
-    #    $class->next::method( message => $msg );
-    #}
-
-    method throw {
-        use Carp;
-        croak @_;
-        die Devel::StackTrace->new;
-        # die @_; # +shift->new(join " ", @_);
-    };
-};
-
-
-__END__
-        die @_;
-        my %arg = @_ == 1 ?
-            ( message => +shift )
-            :
-            @_;
-        $class->next::method(%arg);
+    sub BUILDARGS { @_ == 2 ? { message => $_[1] } : { @_[1..$#_-1] } };
 
     has message =>
         is => "lazy",
@@ -46,6 +22,16 @@ __END__
         $self->message;
     }
 
+    sub throw {
+        my $proto = shift;
+        die blessed($proto) ?
+            $proto : $proto->new(@_);
+    }
+}
+
+"Error! Error! Error!";
+
+__END__
 
 =pod
 

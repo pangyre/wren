@@ -1,42 +1,89 @@
 use 5.16.2;
 use strictures;
-use mop;
 our $AUTHORITY = "cpan:ASHLEY";
 
-class Wren v0.0.1 with Wren::Error {
+package Wren v0.0.1 {
+    use Moo;
+    use MooX::late;
+    use MooX::HandlesVia;
+    use Wren::Error;
+
     use HTTP::Status ":constants", "status_message";
-    use Exporter;# "export_to_level";
-    use Router::R3;
+    use Exporter "import"; # "export_to_level";
+    our @EXPORT = qw/ add_model add_route /;
 
-    has $!env      is ro;
-    has $!request  is ro, lazy = $_->_build_request;
-    has $!response is ro, lazy = $_->_build_response;
-    has $!router   is ro, lazy = $_->_build_routes;
-    has $!models   is ro, lazy = $_->_build_models;
-    has $!errors   is rw = [];
+    has errors =>
+        is => "ro",
+        traits  => ["Array"],
+        handles => { error => "push",
+                     has_errors => "count",
+                     clear_errors => "clear" },
+        default => sub { [] },
+        ;
 
-    sub import {
-        shift->export_to_level(1); # handle our exports
+    has routes =>
+        is => "lazy",
+        traits  => ["Array"],
+        ;
+
+    has models =>
+        is => "lazy",
+        traits  => ["Hash"],
+        handles => { get_model => "get" },
+        ;
+
+    has router =>
+        is => "lazy",
+        ;
+
+    has env =>
+        is => "rwp",
+        clearer => 1,
+        ;
+
+    has request =>
+        is => "lazy",
+        # Maybe no shortcuts?
+        # handles => [qw/ parameters query_parameters body_parameters referer user_agent param base uri /],
+        clearer => 1;
+
+    has response =>
+        is => "lazy",
+        clearer => 1;
+
+    sub _build_request {
+        require Plack::Request;
+        "Plack::Request"->new( +shift->env );
+    };
+
+    sub _build_response {
+        require Plack::Response;
+        "Plack::Response"->new( HTTP_NOT_FOUND,
+                                [ "Content-Type" => "text/plain" ] );
     }
 
-    our %_models;
+#    sub import {
+#        Exporter->export_to_level(1); # handle our exports
+#    }
+
+    my %_models;
     sub add_model {
         my $name = shift;
-        require Wren::Model;
         if ( @_ == 1 and ref $_[0] eq "CODE" )
         {
             $_models{$name} = +shift;
         }
         else
         {
+            require Wren::Model;
             $_models{$_->name} = $_ for Wren::Model->compose($name => @_);
         }
     }
 
-    method _build_models {
+    sub _build_models {
         # no warnings "redefine";
         # Not this... *add_model = sub { ... };
-        \%_models; # UNDEFINE OR REDEFINE add_model here to error out post _build?
+        \%_models; # Undefine or redefine add_model here to error out post _build?
     };
 
     our @_routes;
@@ -49,66 +96,68 @@ class Wren v0.0.1 with Wren::Error {
         push @_routes, $route => \%arg;
     }
 
-    method _build_routes {
-        "Router::R3"->new(@_routes);
-    };
+    sub _build_routes { \@_routes };
+    sub _build_router { require Router::R3; "Router::R3"->new(@_routes) };
 
-    method model ($name) {
-        use Scalar::Util "blessed";
-        my $metamodel = $!models->{$name} || die "No such model: $name"; # Wren::Error->throw("No such model: $name");
-        return $metamodel->() unless blessed $metamodel;
-        my $model = $metamodel->model;
-        ref $model eq "CODE" ?
-            $model->()
-                :
-            $model;
-    };
+    sub model {
+        my ( $self, $model_name, @arg ) = @_;
+        # say STDERR "HERE ",  $self->models;
 
+        my $metamodel = $self->get_model($model_name)
+            or Wren::Error->throw("No such model: $model_name");
 
-    method _build_response {
-        require Plack::Response;
-        "Plack::Response"
-            ->new( HTTP_NOT_FOUND,
-                   [ "Content-Type" => "text/plain" ] );
-    };
+        ref $metamodel eq  "CODE" ?
+            $metamodel->(@arg)
+            :
+            $metamodel->model;
+    }
 
-    method _build_request {
-        require Plack::Request;
-        $!request = "Plack::Request"->new( $!env );
-    };
+    sub _reset { $_[0]->$_ for map "clear_$_", qw/ env request response errors / }
 
-    method reset {
-        undef $!env;
-        undef $!request;
-        undef $!response;
-    };
+    sub finalize {
+        my $self = shift;
 
-    method to_app {
+        $self->response->body( status_message( $self->response->status ), ": ", $self->request->path )
+            unless $self->response->body;
+
+        if ( $self->has_errors )
+        {
+            $self->response->status(500);
+            $self->response->body( join "\n", @{$self->errors} );
+        }
+
+        $self->response->finalize;
+    }
+
+    sub to_app {
+        no warnings "uninitialized";
+        my $self = shift;
         sub {
-            $self->reset;
-            $!env = shift;
-            my ( $match, $captures ) = $!router->match( $!env->{PATH_INFO} );
+            $self->_reset;
+            $self->_set_env( +shift );
 
+            my ( $match, $captures ) = $self->router->match( $self->env->{PATH_INFO} );
             # use Data::Dump "dump"; say dump $match;
+            # say STDERR "Matched route: ", $match->{route};
 
-            my $method = $match->{method} || return $!response->finalize; # Default is 404.
-            eval {
-                $self->$method( $captures );
-            };
-            push @{$!errors}, $@ if $@;
+            my $code = $match->{code} || return $self->finalize; # Default is NOT_FOUND.
+            $self->response->status(200); # New default is OK.
 
-            if ( @{$!errors} )
+            $self->error( $@ || Wren::Error->new("Unkown error!") )
+                unless "ok" eq eval { $code->( $self, $captures ); "ok" };
+
+            if ( $self->has_errors )
             {
-                $!response->status(500);
-                $!response->body( join "\n", @{$!errors} );
+                $self->response->status(500);
+                $self->response->body( join "\n", @{$self->errors} );
             }
 
-            #$!response->status(HTTP_NOT_FOUND);# unless $!response->status;
-            #$!response->body   || $!response->body([ status_message( $!response->status ), ": ", $!request->path ]);
+            #$self->response->status(HTTP_NOT_FOUND);# unless $self->response->status;
+            #$self->response->body   || $self->response->body([ status_message( $self->response->status ), ": ", $self->request->path ]);
 
-            $!response->finalize;
+            $self->response->finalize;
             # return [ 200, [ "Content-Type" => "text/plain" ], [ "OHAI\n"] ];
-        }
+        };
     }
 };
 
@@ -146,9 +195,7 @@ DOCS ARE ENTIRELY UP THE AIR ON THIS BRANCH AND REPRESENT NOTHING RELIABLE.
 
 =over 4
 
-=item * to_app
-
-=item * wren
+=item * add_route
 
 =item * add_model
 
@@ -160,7 +207,13 @@ DOCS ARE ENTIRELY UP THE AIR ON THIS BRANCH AND REPRESENT NOTHING RELIABLE.
 
 =over 4
 
+=item * to_app
+
 =item * env
+
+=item * router
+
+=item * has_errors
 
 =item * errors
 
@@ -169,6 +222,10 @@ DOCS ARE ENTIRELY UP THE AIR ON THIS BRANCH AND REPRESENT NOTHING RELIABLE.
 =item * response
 
 =item * models
+
+=item * model
+
+=item * finalize
 
 =back
 
@@ -258,3 +315,43 @@ not just an irreversible run time map.
 
 Should have a sendfile v self-managed static server.
 
+
+FFFFFFF...FFFFF...F...F...FFFFFF...
+
+RFC 2616
+    OPTIONS
+    GET
+    HEAD
+    POST
+    PUT
+    DELETE
+    TRACE
+    CONNECT
+RFC 2518
+    PROPFIND
+    PROPPATCH
+    MKCOL
+    COPY
+    MOVE
+    LOCK
+    UNLOCK
+RFC 3253
+    VERSION-CONTROL
+    REPORT
+    CHECKOUT
+    CHECKIN
+    UNCHECKOUT
+    MKWORKSPACE
+    UPDATE
+    LABEL
+    MERGE
+    BASELINE-CONTROL
+    MKACTIVITY
+RFC 3648
+    ORDERPATCH
+RFC 3744
+    ACL
+draft-dusseault-http-patch
+    PATCH
+draft-reschke-webdav-search
+    SEARCH

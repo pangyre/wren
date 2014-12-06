@@ -6,6 +6,9 @@ use Plack::Test;
 # use HTTP::Tiny;
 use HTTP::Request::Common;
 
+
+use Test::Most; bail_on_fail();
+
 my $test_lib = path( path(__FILE__)->parent, "lib" );
 push @INC, "$test_lib";
 ok eval "use WrenApp; 1", "use WrenApp;"
@@ -46,11 +49,24 @@ subtest "Some exception stuff" => sub {
     done_testing();
 };
 
-
-
 subtest "Excercise the test app WrenApp" => sub {
 
-    my $app = WrenApp->new->to_app;
+    my $wren = WrenApp->new;
+    isa_ok $wren, "Wren";
+    isa_ok $wren, "WrenApp";
+
+    ok $wren->routes, "Routes are there";
+    ok $wren->router, "Router is there";
+
+    ok ! $wren->has_errors, "No errors";
+    ok $wren->error("OHAI") ,"Add an error";
+    is $wren->has_errors, 1, "Now there is an error";
+    ok eval { $wren->clear_errors; 1 }, "Clear errors"
+        or note $@;
+    ok ! $wren->has_errors, "Back to no errors";
+
+    my $app = $wren->to_app;
+    is ref $app, "CODE", "WrenApp->new->to_app return code reference";
 
     #like exception { add_model( Name => { stuff => "here" } ) },
     #    qr/Undefined subroutine/,
@@ -59,7 +75,8 @@ subtest "Excercise the test app WrenApp" => sub {
     test_psgi $app, sub {
         my $cb  = shift;
         my $res = $cb->(GET "/");
-        is $res->code, 200, "GET / is successful";
+        is $res->code, 200, "GET / is successful"
+            or note $res->as_string;
         like $res->content, qr/OHAI/, "Body looks right";
     };
 
@@ -74,7 +91,8 @@ subtest "Excercise the test app WrenApp" => sub {
         my $cb  = shift;
         my $res = $cb->(GET "/exception");
         is $res->code, 500, "Status is 500";
-        like $res->content, qr/Internal Server Error/i, '500 content contains "Internal Server Error"';
+        like $res->content, qr/NO CAN HAZ/i, '500 content contains exception text'
+            or note $res->as_string;
     };
 
     subtest "Test a flat model (a counter)" => sub {

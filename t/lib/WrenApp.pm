@@ -1,6 +1,9 @@
 use 5.16.2;
-use mop;
-class WrenApp v0.0.1 extends Wren {
+
+package WrenApp v0.0.1 {
+    use parent "Wren";
+    use Wren;
+    use Wren::Error;
 
     add_model "DB" =>
         class => "WrenApp::Schema",
@@ -20,13 +23,29 @@ class WrenApp v0.0.1 extends Wren {
 
     add_route "/" =>
         http => "*", # This is default, answer all HTTP methods.
-        "method" => "home";
+        code => sub {
+            my $self = shift;
+            $self->response->body("OHAI");
+    };
 
     add_route "/counter" =>
-        "method" => "counter";
+        code => sub {
+            my $self = shift;
+            $self->response->body( $self->model("Counter") );
+    };
 
     add_route "/exception" =>
-        "method" => "exception";
+        code => sub {
+            my $self = shift;
+            $self->response->status(200);
+            Wren::Error->throw("NO CAN HAZ");
+    };
+
+}
+
+1;
+
+__END__
 
     method home {
         $self->response->status(200); # This is default on match from Wren.
@@ -41,11 +60,6 @@ class WrenApp v0.0.1 extends Wren {
         $self->response->status(200);
         $self->throw("NO CAN HAZ");
     };
-}
-
-1;
-
-__END__
 
 * Auto document routes to POD/map, allow a description?
 

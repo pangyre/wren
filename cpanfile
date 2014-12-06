@@ -1,5 +1,6 @@
-# Only TRIAL so far, requires "mop" => "0.03";
 requires "parent";
+requires "Moo";
+requires "Scalar::Util";
 requires "strictures";
 requires "Plack";
 requires "Plack::Middleware::Headers";

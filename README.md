@@ -22,19 +22,23 @@ DOCS ARE ENTIRELY UP THE AIR ON THIS BRANCH AND REPRESENT NOTHING RELIABLE.
 
 ## Functions/Muncthods
 
-- to\_app
-- wren
+- add\_route
 - add\_model
 
 ## Methods
 
 ...exposit on object and request cycle from ["Description"](#description).
 
+- to\_app
 - env
+- router
+- has\_errors
 - errors
 - request
 - response
 - models
+- model
+- finalize
 
 # MVC
 
