@@ -23,7 +23,7 @@ package WrenApp v0.0.1 {
 
     add_view "Xslate" =>
         class => "Text::Xslate",
-        arguments => {},
+        arguments => [],
         ;
 
     add_route "/" =>
@@ -50,8 +50,7 @@ package WrenApp v0.0.1 {
         code => sub {
             my $self = shift;
             $self->response->status(200);
-            $self->response->body("KDJFLSKJDFLSDKFJ");
-            $self->response->body( $self->view("Xslate") );
+            $self->response->body( $self->view("Xslate")->render );
     };
 
 }

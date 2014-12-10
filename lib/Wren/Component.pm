@@ -14,6 +14,7 @@ package Wren::Component {
 
         my $component_type = $self =~ s/Wren::(\w+)/lc $1/er; # View|Model is all so far...
         {
+            print STDERR qq| &{"${self}::has"}( $component_type, is => "ro", required => 1 );\n\n$self >>>>>>>>> |, $component_type, $/;
             no strict "refs";
             &{"${self}::has"}( $component_type, is => "ro", required => 1 );
         }
@@ -26,7 +27,7 @@ package Wren::Component {
 
             if ( my $type = delete $arg{type} )
             {
-                requires "instantiate";
+                # Not local, must be injected? requires "instantiate";
                 eval "require $type"
                     unless eval { $type->VERSION };
                 Wren::Error->throw("Cannot load $type: $@") if $@;
@@ -38,7 +39,7 @@ package Wren::Component {
 
             return
                 $self->new( name => $name,
-                            $self->component_type => $thing );
+                            $component_type => $thing );
         }
         Wren::Error->throw("Must have a class or a type or both");
     }

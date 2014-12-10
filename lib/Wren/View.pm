@@ -1,9 +1,10 @@
 use strictures;
 
 package Wren::View {
-    use parent "Wren::Component";
-    use Moo::Role;
-    requires "render"; # Apply role to non-Moo class?
+#    use parent "Wren::Component";
+    use Moo;
+    with "Wren::Component";
+    # requires "render"; # Apply role to non-Moo class?
 };
 
 "Cactus";
@@ -24,7 +25,9 @@ Wren::View - ...
 
 =over 4
 
-=item * ...
+=item * new
+
+=item * view
 
 =back
 
