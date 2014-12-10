@@ -53,9 +53,13 @@ subtest "Some exception stuff" => sub {
 };
 
 subtest "Some view stuff" => sub {
+    plan skip_all => "Write these, please";
+
     my $wren = WrenApp->new;
-    test_psgi $app, sub {
+
+    test_psgi $wren->to_app, sub {
         my $cb  = shift;
+
         my $res = $cb->(GET "/with-a-view",
                         Accept => "text/plain");
 
@@ -141,6 +145,6 @@ subtest "Excercise the test app WrenApp" => sub {
     done_testing();
 };
 
-done_testing(4);
+done_testing(5);
 
 __END__
