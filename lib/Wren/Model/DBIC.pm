@@ -2,14 +2,13 @@ use strictures;
 
 package Wren::Model::DBIC {
     use Moo;
-    extends "Wren::Model";
-    no warnings "redefine"; # WHY?! Is this the eval "use ..." stuff?
+    with "Wren::Component", "Wren::Model";
 
     sub instantiate {
         my ( $class, $name, %arg ) = @_;
         # Provide for bootstrapping from connection string, I think.
         my $model_class = delete $arg{class};
-        eval "use $model_class; 1";
+        # eval "use $model_class; 1";
         # Wren::Error->throw("Couldn't load $model_class: ", $@) if $@;
 
         my $schema = "$model_class"->connect(@{ $arg{connect_info} });

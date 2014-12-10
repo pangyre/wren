@@ -5,9 +5,13 @@ package Wren::Error {
     use Moo;
     use Scalar::Util "blessed";
     use Devel::StackTrace;
-    use overload '""' => sub { +shift->message };
+    use overload '""' => sub { $_[0]->message . $/ . $_[0]->stacktrace };
 
-    sub BUILDARGS { @_ == 2 ? { message => $_[1] } : { @_[1..$#_-1] } };
+    sub BUILDARGS { 
+
+        use Data::Dump "dump";
+        dump \@_;
+@_ == 2 ? { message => $_[1] } : { @_[1..$#_-1] } };
 
     has message =>
         is => "lazy",

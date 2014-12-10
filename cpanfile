@@ -12,6 +12,9 @@ requires "Path::Tiny";
 requires "URI";
 requires "Router::R3";
 
+# Maybe be more agnostic?
+requires "Text::Xslate";
+
 on build => sub {
    requires "Module::CPANfile::Result";
 };
@@ -23,4 +26,5 @@ on test => sub {
     requires "SQL::Translator" => "0.11018",
     requires "Pod::Coverage::Moose" => "0.05";
     requires "Time::HiRes" => "1.9726";
+    requires "Plack::Middleware::Session";
 };

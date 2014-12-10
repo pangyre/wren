@@ -1,8 +1,9 @@
 use strictures;
 
-package Wren::Model {
+package Wren::View {
     use parent "Wren::Component";
     use Moo::Role;
+    requires "render"; # Apply role to non-Moo class?
 };
 
 "Cactus";
@@ -15,7 +16,7 @@ __END__
 
 =head1 Name
 
-Wren::Model - ...
+Wren::View - ...
 
 =head1 Synopsis
 
@@ -23,9 +24,7 @@ Wren::Model - ...
 
 =over 4
 
-=item * component_type
-
-=item * model
+=item * ...
 
 =back
 

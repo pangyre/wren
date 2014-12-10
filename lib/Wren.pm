@@ -101,7 +101,6 @@ package Wren v0.0.1 {
 
     sub model {
         my ( $self, $model_name, @arg ) = @_;
-        # say STDERR "HERE ",  $self->models;
 
         my $metamodel = $self->get_model($model_name)
             or Wren::Error->throw("No such model: $model_name");
@@ -125,7 +124,6 @@ package Wren v0.0.1 {
             $self->response->status(500);
             $self->response->body( join "\n", @{$self->errors} );
         }
-
         $self->response->finalize;
     }
 
@@ -135,10 +133,9 @@ package Wren v0.0.1 {
         sub {
             $self->_reset;
             $self->_set_env( +shift );
+            # my $session = $self->env->{"psgix.session"};
 
             my ( $match, $captures ) = $self->router->match( $self->env->{PATH_INFO} );
-            # use Data::Dump "dump"; say dump $match;
-            # say STDERR "Matched route: ", $match->{route};
 
             my $code = $match->{code} || return $self->finalize; # Default is NOT_FOUND.
             $self->response->status(200); # New default is OK.
@@ -146,17 +143,7 @@ package Wren v0.0.1 {
             $self->error( $@ || Wren::Error->new("Unkown error!") )
                 unless "ok" eq eval { $code->( $self, $captures ); "ok" };
 
-            if ( $self->has_errors )
-            {
-                $self->response->status(500);
-                $self->response->body( join "\n", @{$self->errors} );
-            }
-
-            #$self->response->status(HTTP_NOT_FOUND);# unless $self->response->status;
-            #$self->response->body   || $self->response->body([ status_message( $self->response->status ), ": ", $self->request->path ]);
-
-            $self->response->finalize;
-            # return [ 200, [ "Content-Type" => "text/plain" ], [ "OHAI\n"] ];
+            $self->finalize;
         };
     }
 };
@@ -264,6 +251,49 @@ L<http://github.com/pangyre/wren>.
 =item * Deployment guide, cookbook
 
 =item * L<http://wiki.nginx.org/XSendfile>
+
+L<https://metacpan.org/pod/Plack::Middleware::XSendfile>. Now it is a
+recipe instead of code.
+
+  # Nginx supports the X-Accel-Redirect header. This is similar to X-Sendfile
+  # but requires parts of the filesystem to be mapped into a private URL
+  # hierarachy.
+  #
+  # The following example shows the Nginx configuration required to create
+  # a private "/files/" area, enable X-Accel-Redirect, and pass the special
+  # X-Sendfile-Type and X-Accel-Mapping headers to the backend:
+  #
+  #   location /files/ {
+  #     internal;
+  #     alias /var/www/;
+  #   }
+  #
+  #   location / {
+  #     proxy_redirect     false;
+  #
+  #     proxy_set_header   Host                $host;
+  #     proxy_set_header   X-Real-IP           $remote_addr;
+  #     proxy_set_header   X-Forwarded-For     $proxy_add_x_forwarded_for;
+  #
+  #     proxy_set_header   X-Sendfile-Type     X-Accel-Redirect
+  #     proxy_set_header   X-Accel-Mapping     /files/=/var/www/;
+  #
+  #     proxy_pass         http://127.0.0.1:8080/;
+  #   }
+  #
+  # Note that the X-Sendfile-Type header must be set exactly as shown above. The
+  # X-Accel-Mapping header should specify the name of the private URL pattern,
+  # followed by an equals sign (=), followed by the location on the file system
+  # that it maps to. The middleware performs a simple substitution on the
+  # resulting path.
+  #
+  # See Also: http://wiki.codemongers.com/NginxXSendfile
+
+=item * LOGGING? Logger?
+
+=item * Plugins?
+
+Session, DBIC, etc, etc. XSRF... Rely on middleware.
 
 =back
 

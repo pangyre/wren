@@ -1,0 +1,110 @@
+=pod
+
+=encoding utf-8
+
+=head1 Name
+
+Wren::Cookbook - ...
+
+=head1 Recipes
+
+=head2  DBIx::Class Model
+
+=head2 nginx Deployment
+
+=head2 nginx XSendfile (X-Accel-Redirect)
+
+L<https://metacpan.org/pod/Plack::Middleware::XSendfile>
+L<http://wiki.nginx.org/XSendfile>
+
+ enable "Plack::Middleware::XSendfile";
+ enable "XSendfile";
+
+C</var/www> here is the static dir. For us... /opt/wren/APPNAME/static?
+
+     location /files/ {
+       internal;
+       alias /var/www/;
+     }
+  
+     location / {
+       proxy_redirect     false;
+  
+       proxy_set_header   Host                $host;
+       proxy_set_header   X-Real-IP           $remote_addr;
+       proxy_set_header   X-Forwarded-For     $proxy_add_x_forwarded_for;
+  
+       proxy_set_header   X-Sendfile-Type     X-Accel-Redirect
+       proxy_set_header   X-Accel-Mapping     /files/=/var/www/;
+  
+       proxy_pass         http://127.0.0.1:8080/;
+     }
+  
+  # Note that the X-Sendfile-Type header must be set exactly as shown above. The
+  # X-Accel-Mapping header should specify the name of the private URL pattern,
+  # followed by an equals sign (=), followed by the location on the file system
+  # that it maps to. The middleware performs a simple substitution on the
+  # resulting path.
+  #
+  # See Also: http://wiki.codemongers.com/NginxXSendfile
+
+=head1 Author, License, Etc
+
+L<Wren>.
+
+=cut
+
+ #  ID       QS     Content-Type   Encoding Char-Set        Lang   Size
+  [['var1',  1.000, 'text/html',   undef,   'iso-8859-1',   'en',   3000],
+   ['var2',  0.950, 'text/plain',  'gzip',  'us-ascii',     'no',    400],
+   ['var3',  0.3,   'image/gif',   undef,   undef,          undef, 43555],
+  ];
+
+
+Consider doing a ->relative($self->static) in the uri_for because it
+could be a no-op maybe when it's already relative but it will "do the
+right thing" with web paths... not application aware though so it's in
+fact sort of broken as is... Dispatch much be application object and
+not just an irreversible run time map.
+
+Should have a sendfile v self-managed static server.
+
+FFFFFFF...FFFFF...F...F...FFFFFF...
+
+RFC 2616
+    OPTIONS
+    GET
+    HEAD
+    POST
+    PUT
+    DELETE
+    TRACE
+    CONNECT
+RFC 2518
+    PROPFIND
+    PROPPATCH
+    MKCOL
+    COPY
+    MOVE
+    LOCK
+    UNLOCK
+RFC 3253
+    VERSION-CONTROL
+    REPORT
+    CHECKOUT
+    CHECKIN
+    UNCHECKOUT
+    MKWORKSPACE
+    UPDATE
+    LABEL
+    MERGE
+    BASELINE-CONTROL
+    MKACTIVITY
+RFC 3648
+    ORDERPATCH
+RFC 3744
+    ACL
+draft-dusseault-http-patch
+    PATCH
+draft-reschke-webdav-search
+    SEARCH

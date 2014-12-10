@@ -29,17 +29,20 @@ subtest "Walk everything: use/Pod/coverage/spelling" => sub {
         next if $path =~ /[#~]/;
         ( my $package = $path->relative($lib) =~ s,/,::,gr ) =~ s/\.pm$//;
 
-        use_ok( $package );
         pod_file_ok("$path");
-        pod_coverage_ok($package,
-                        { also_private => [ qr/^[A-Z_]+$/ ] });
+        $count += 1;
+
+        next if $path =~ /\.pod\z/;
+
+        pod_coverage_ok($package, { also_private => [ qr/^[A-Z_]+$/ ] });
+        use_ok( $package );
 
         # Ineffectual as is...
         #pod_coverage_ok($package,
         #                { coverage_class => 'Pod::Coverage::Moose',
         #                  also_private => [ qr/^[A-Z_]+$/ ] });
 
-        $count += 3;
+        $count += 2;
     }
     done_testing($count);
 };
