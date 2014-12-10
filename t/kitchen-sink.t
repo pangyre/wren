@@ -53,24 +53,28 @@ subtest "Some exception stuff" => sub {
 };
 
 subtest "Some view stuff" => sub {
-    plan skip_all => "Write these, please";
+    # plan skip_all => "Write these, please";
 
     my $wren = WrenApp->new;
 
     test_psgi $wren->to_app, sub {
         my $cb  = shift;
+        my $path_query = "/with-a-view/veri?ohai=DER;ohai=HAI";
 
-        my $res = $cb->(GET "/with-a-view",
-                        Accept => "text/plain");
+        my $res = $cb->(GET $path_query);
 
-        is $res->code, 200, "GET / is successful"
+        is $res->code, 200, "GET $path_query is successful"
             or note $res->as_string;
-        like $res->content, qr/OHAI/, "Body looks right";
+
+        like $res->content, qr/DER/, "Body looks right";
     };
 
 
     done_testing();
 };
+
+# Accept => "text/plain");
+
 
 subtest "Excercise the test app WrenApp" => sub {
     my $wren = WrenApp->new;

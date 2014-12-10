@@ -10,7 +10,7 @@ package Wren v0.0.1 {
 
     use HTTP::Status ":constants", "status_message";
     use Exporter "import"; # "export_to_level";
-    our @EXPORT = qw/ add_model add_route /;
+    our @EXPORT = qw/ add_model add_view add_route /;
 
     has errors =>
         is => "ro",
@@ -30,6 +30,12 @@ package Wren v0.0.1 {
         is => "lazy",
         traits  => ["Hash"],
         handles => { get_model => "get" },
+        ;
+
+    has views =>
+        is => "lazy",
+        traits  => ["Hash"],
+        handles => { get_view => "get" },
         ;
 
     has router =>
@@ -86,6 +92,26 @@ package Wren v0.0.1 {
         \%_models; # Undefine or redefine add_model here to error out post _build?
     };
 
+    my %_views;
+    sub add_view {
+        my $name = shift;
+        if ( @_ == 1 and ref $_[0] eq "CODE" )
+        {
+            $_views{$name} = +shift;
+        }
+        else
+        {
+            require Wren::View;
+            $_views{$_->name} = $_ for Wren::View->compose($name => @_);
+        }
+    }
+
+    sub _build_views {
+        # no warnings "redefine";
+        # Not this... *add_model = sub { ... };
+        \%_views; # Undefine or redefine add_model here to error out post _build?
+    };
+
     our @_routes;
     sub add_route {
         my $route = shift;
@@ -109,6 +135,18 @@ package Wren v0.0.1 {
             $metamodel->(@arg)
             :
             $metamodel->model;
+    }
+
+    sub view {
+        my ( $self, $view_name, @arg ) = @_;
+
+        my $metaview = $self->get_view($view_name)
+            or Wren::Error->throw("No such view: $view_name");
+
+        ref $metaview eq  "CODE" ?
+            $metaview->(@arg)
+            :
+            $metaview->view;
     }
 
     sub _reset { $_[0]->$_ for map "clear_$_", qw/ env request response errors / }
@@ -186,6 +224,8 @@ DOCS ARE ENTIRELY UP THE AIR ON THIS BRANCH AND REPRESENT NOTHING RELIABLE.
 
 =item * add_model
 
+=item * add_view
+
 =back
 
 =head2 Methods
@@ -211,6 +251,10 @@ DOCS ARE ENTIRELY UP THE AIR ON THIS BRANCH AND REPRESENT NOTHING RELIABLE.
 =item * models
 
 =item * model
+
+=item * views
+
+=item * view
 
 =item * finalize
 
