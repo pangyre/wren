@@ -21,6 +21,11 @@ package WrenApp v0.0.1 {
         $count++;
     };
 
+    add_view "Xslate" =>
+        class => "Text::Xslate",
+        arguments => {},
+        ;
+
     add_route "/" =>
         http => "*", # This is default, answer all HTTP methods.
         code => sub {
