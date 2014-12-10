@@ -52,8 +52,23 @@ subtest "Some exception stuff" => sub {
     done_testing();
 };
 
-subtest "Excercise the test app WrenApp" => sub {
+subtest "Some view stuff" => sub {
+    my $wren = WrenApp->new;
+    test_psgi $app, sub {
+        my $cb  = shift;
+        my $res = $cb->(GET "/with-a-view",
+                        Accept => "text/plain");
 
+        is $res->code, 200, "GET / is successful"
+            or note $res->as_string;
+        like $res->content, qr/OHAI/, "Body looks right";
+    };
+
+
+    done_testing();
+};
+
+subtest "Excercise the test app WrenApp" => sub {
     my $wren = WrenApp->new;
     isa_ok $wren, "Wren";
     isa_ok $wren, "WrenApp";

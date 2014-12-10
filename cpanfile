@@ -20,6 +20,8 @@ on build => sub {
 };
 
 on test => sub {
+    requires "Data::Dump" => 1;
+    requires "Test::Most" => 1;
     requires "Test::More" => 1;
     requires "Test::Fatal" => "0.01";
     requires "DBIx::Class" => "0.082";
