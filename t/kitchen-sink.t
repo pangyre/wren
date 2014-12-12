@@ -58,8 +58,10 @@ subtest "Some view stuff" => sub {
     my $wren = WrenApp->new;
 
     test_psgi $wren->to_app, sub {
+        diag "NO! This is harcoded, make it from the param";
+
         my $cb  = shift;
-        my $path_query = "/with-a-view/veri?ohai=DER;ohai=HAI";
+        my $path_query = "/view/perfidy?ohai=DER;ohai=HAI";
 
         my $res = $cb->(GET $path_query);
 

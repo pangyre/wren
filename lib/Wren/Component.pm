@@ -14,7 +14,7 @@ package Wren::Component {
 
         my $component_type = $self =~ s/Wren::(\w+)/lc $1/er; # View|Model is all so far...
         {
-            print STDERR qq| &{"${self}::has"}( $component_type, is => "ro", required => 1 );\n\n$self >>>>>>>>> |, $component_type, $/;
+            # print STDERR qq| &{"${self}::has"}( $component_type, is => "ro", required => 1 );\n\n$self >>>>>>>>> |, $component_type, $/;
             no strict "refs";
             &{"${self}::has"}( $component_type, is => "ro", required => 1 );
         }

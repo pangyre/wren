@@ -1,6 +1,7 @@
 requires "parent";
 requires "Moo";
 requires "MooX::late";
+requies "MooX::ClassAttribute";
 requires "MooX::HandlesVia";
 
 requires "Scalar::Util";

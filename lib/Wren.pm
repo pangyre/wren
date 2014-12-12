@@ -6,11 +6,17 @@ package Wren v0.0.1 {
     use Moo;
     use MooX::late;
     use MooX::HandlesVia;
+    use MooX::ClassAttribute;
     use Wren::Error;
+    use Path::Tiny;
 
     use HTTP::Status ":constants", "status_message";
     use Exporter "import"; # "export_to_level";
     our @EXPORT = qw/ add_model add_view add_route /;
+
+    sub _path {
+        path "/Users/apv/depot/wren/t/xslate";
+    }
 
     has errors =>
         is => "ro",
@@ -20,6 +26,11 @@ package Wren v0.0.1 {
                      clear_errors => "clear" },
         default => sub { [] },
         ;
+
+#    class_has routes =>
+#        is => "lazy",
+#        traits  => ["Array"],
+#        ;
 
     has routes =>
         is => "lazy",
