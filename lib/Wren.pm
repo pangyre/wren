@@ -6,7 +6,7 @@ package Wren v0.0.1 {
     use Moo;
     use MooX::late;
     use MooX::HandlesVia;
-    use MooX::ClassAttribute;
+    # Not yet, ever? xsuse MooX::ClassAttribute;
     use Wren::Error;
     use Path::Tiny;
 
