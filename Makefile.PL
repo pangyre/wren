@@ -12,6 +12,7 @@ require Wren;
 version "Wren"->VERSION;
 
 cpanfile;
+
 WriteAll;
 
 if ( $Module::Install::AUTHOR )

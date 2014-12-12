@@ -21,6 +21,7 @@ on build => sub {
 };
 
 on test => sub {
+    requires "Text::Xslate" => 3;
     requires "Data::Dump" => 1;
     requires "Test::Most";
     requires "Test::More" => 1;
