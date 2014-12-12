@@ -24,6 +24,7 @@ DOCS ARE ENTIRELY UP THE AIR ON THIS BRANCH AND REPRESENT NOTHING RELIABLE.
 
 - add\_route
 - add\_model
+- add\_view
 
 ## Methods
 
@@ -38,6 +39,8 @@ DOCS ARE ENTIRELY UP THE AIR ON THIS BRANCH AND REPRESENT NOTHING RELIABLE.
 - response
 - models
 - model
+- views
+- view
 - finalize
 
 # MVC
@@ -72,6 +75,48 @@ detailed in Wren::Guide or something.
 
 - Deployment guide, cookbook
 - [http://wiki.nginx.org/XSendfile](http://wiki.nginx.org/XSendfile)
+
+    [https://metacpan.org/pod/Plack::Middleware::XSendfile](https://metacpan.org/pod/Plack::Middleware::XSendfile). Now it is a
+    recipe instead of code.
+
+        # Nginx supports the X-Accel-Redirect header. This is similar to X-Sendfile
+        # but requires parts of the filesystem to be mapped into a private URL
+        # hierarachy.
+        #
+        # The following example shows the Nginx configuration required to create
+        # a private "/files/" area, enable X-Accel-Redirect, and pass the special
+        # X-Sendfile-Type and X-Accel-Mapping headers to the backend:
+        #
+        #   location /files/ {
+        #     internal;
+        #     alias /var/www/;
+        #   }
+        #
+        #   location / {
+        #     proxy_redirect     false;
+        #
+        #     proxy_set_header   Host                $host;
+        #     proxy_set_header   X-Real-IP           $remote_addr;
+        #     proxy_set_header   X-Forwarded-For     $proxy_add_x_forwarded_for;
+        #
+        #     proxy_set_header   X-Sendfile-Type     X-Accel-Redirect
+        #     proxy_set_header   X-Accel-Mapping     /files/=/var/www/;
+        #
+        #     proxy_pass         http://127.0.0.1:8080/;
+        #   }
+        #
+        # Note that the X-Sendfile-Type header must be set exactly as shown above. The
+        # X-Accel-Mapping header should specify the name of the private URL pattern,
+        # followed by an equals sign (=), followed by the location on the file system
+        # that it maps to. The middleware performs a simple substitution on the
+        # resulting path.
+        #
+        # See Also: http://wiki.codemongers.com/NginxXSendfile
+
+- LOGGING? Logger?
+- Plugins?
+
+    Session, DBIC, etc, etc. XSRF... Rely on middleware.
 
 # Author
 

@@ -1,7 +1,7 @@
 requires "parent";
 requires "Moo";
 requires "MooX::late";
-requies "MooX::ClassAttribute";
+# requies "MooX::ClassAttribute";
 requires "MooX::HandlesVia";
 
 requires "Scalar::Util";
@@ -22,7 +22,7 @@ on build => sub {
 
 on test => sub {
     requires "Data::Dump" => 1;
-    requires "Test::Most" => 1;
+    requires "Test::Most";
     requires "Test::More" => 1;
     requires "Test::Fatal" => "0.01";
     requires "DBIx::Class" => "0.082";
