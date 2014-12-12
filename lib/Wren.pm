@@ -15,7 +15,8 @@ package Wren v0.0.1 {
     our @EXPORT = qw/ add_model add_view add_route /;
 
     sub _path {
-        path "/Users/apv/depot/wren/t/xslate";
+        use FindBin qw($Bin);
+        path "$Bin";
     }
 
     has errors =>

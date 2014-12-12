@@ -54,7 +54,7 @@ package WrenApp v0.0.1 {
             my $self = shift;
             my $arg = shift;
             $self->response->status(200);
-            my $template = Path::Tiny::path( "view", $arg->{id} . ".html" );
+            my $template = Path::Tiny::path( "xslate/view", $arg->{id} . ".html" );
             # Negotiate to pick template extension.
             $self->response->body( $self->view("Xslate")->render($template, {}) );
     };
