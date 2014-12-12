@@ -6,9 +6,6 @@ use Plack::Test;
 # use HTTP::Tiny;
 use HTTP::Request::Common;
 
-
-use Test::Most; bail_on_fail();
-
 my $test_lib = path( path(__FILE__)->parent, "lib" );
 push @INC, "$test_lib";
 ok eval "use WrenApp; 1", "use WrenApp;"
