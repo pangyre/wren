@@ -23,11 +23,8 @@ package WrenApp v0.0.1 {
 
     add_view "Xslate" =>
         class => "Text::Xslate",
-        arguments => [ path => Wren->_path ],
+        arguments => [ path => __PACKAGE__->root ],
         ;
-    #my $rendered = eval {
-    #    $self->render($template, $vars);
-    #};
 
     add_route "/" =>
         http => "*", # This is default, answer all HTTP methods.
@@ -46,7 +43,7 @@ package WrenApp v0.0.1 {
         code => sub {
             my $self = shift;
             $self->response->status(200);
-            Wren::Error->throw("NO CAN HAZ");
+            Wren::Error->throw("NO CAN HAZ!");
     };
 
     add_route '/view/{id:\w+}' =>
@@ -54,9 +51,10 @@ package WrenApp v0.0.1 {
             my $self = shift;
             my $arg = shift;
             $self->response->status(200);
-            my $template = Path::Tiny::path( "xslate/view", $arg->{id} . ".html" );
-            # Negotiate to pick template extension.
-            $self->response->body( $self->view("Xslate")->render($template, {}) );
+            my $template = path( "xslate/view", $arg->{id} . ".html" );
+            # Negotiate to pick template extension?
+            $self->response->content_type("text/html");
+            $self->response->body( $self->view("Xslate")->render($template, { wren => $self }) );
     };
 
 }

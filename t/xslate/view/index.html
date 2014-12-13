@@ -1,0 +1,11 @@
+<html>
+  <head>
+    <title><: $wren :></title>
+  </head>
+  <body>
+    <header><h1><: $wren :></h1></header>
+    <p>
+      OHAI <: $wren.request.query_parameters.get_all("ohai") | html :>!
+    </p>
+  </body>
+</html>

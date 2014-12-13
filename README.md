@@ -25,6 +25,9 @@ DOCS ARE ENTIRELY UP THE AIR ON THIS BRANCH AND REPRESENT NOTHING RELIABLE.
 - add\_route
 - add\_model
 - add\_view
+- root
+
+    Gives [Path::Tiny](https://metacpan.org/pod/Path::Tiny) object of package's dir.
 
 ## Methods
 

@@ -6,17 +6,19 @@ package Wren v0.0.1 {
     use Moo;
     use MooX::late;
     use MooX::HandlesVia;
-    # Not yet, ever? xsuse MooX::ClassAttribute;
+
     use Wren::Error;
     use Path::Tiny;
 
     use HTTP::Status ":constants", "status_message";
     use Exporter "import"; # "export_to_level";
-    our @EXPORT = qw/ add_model add_view add_route /;
+    our @EXPORT = qw/ add_model add_view add_route path /;
 
-    sub _path {
-        use FindBin qw($Bin);
-        path "$Bin";
+    sub root {
+        require FindBin;
+        path $FindBin::Bin;
+        #require File::Spec;
+        #path "File::Spec"->rel2abs($FindBin::Bin);
     }
 
     has errors =>
@@ -27,11 +29,6 @@ package Wren v0.0.1 {
                      clear_errors => "clear" },
         default => sub { [] },
         ;
-
-#    class_has routes =>
-#        is => "lazy",
-#        traits  => ["Array"],
-#        ;
 
     has routes =>
         is => "lazy",
@@ -80,10 +77,6 @@ package Wren v0.0.1 {
                                 [ "Content-Type" => "text/plain; charset=utf-8" ] );
     }
 
-#    sub import {
-#        Exporter->export_to_level(1); # handle our exports
-#    }
-
     my %_models;
     sub add_model {
         my $name = shift;
@@ -129,7 +122,8 @@ package Wren v0.0.1 {
         my $route = shift;
         my %arg = ( "http" => "*",
                     "method" => undef,
-                   @_ );
+                    @_,
+                    route => $route );
         $arg{route} = $route;
         push @_routes, $route => \%arg;
     }
@@ -183,6 +177,7 @@ package Wren v0.0.1 {
         sub {
             $self->_reset;
             $self->_set_env( +shift );
+
             # my $session = $self->env->{"psgix.session"};
 
             my ( $match, $captures ) = $self->router->match( $self->env->{PATH_INFO} );
@@ -196,6 +191,10 @@ package Wren v0.0.1 {
             $self->finalize;
         };
     }
+};
+
+package Wren::Route {
+    
 };
 
 "Winter";
@@ -237,6 +236,10 @@ DOCS ARE ENTIRELY UP THE AIR ON THIS BRANCH AND REPRESENT NOTHING RELIABLE.
 =item * add_model
 
 =item * add_view
+
+=item * root
+
+Gives L<Path::Tiny> object of package's dir.
 
 =back
 
@@ -441,3 +444,5 @@ draft-dusseault-http-patch
     PATCH
 draft-reschke-webdav-search
     SEARCH
+
+
