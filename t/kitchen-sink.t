@@ -55,10 +55,9 @@ subtest "Some view stuff" => sub {
     my $wren = WrenApp->new;
 
     test_psgi $wren->to_app, sub {
-        diag "NO! This is harcoded, make it from the param";
-
         my $cb  = shift;
-        # FAIL b/c of Xslate+Plack param.contex handling... my $path_query = "/view/index?ohai=DER;ohai=HAI";
+        # FAIL b/c of Xslate+Plack param.contex handling... my
+        # $path_query = "/view/index?ohai=DER;ohai=HAI";
         my $path_query = "/view/index?ohai=DER";
 
         my $res = $cb->(GET $path_query);
@@ -66,7 +65,7 @@ subtest "Some view stuff" => sub {
         is $res->code, 200, "GET $path_query is successful"
             or note $res->as_string;
 
-        like $res->content, qr/DER/, "Body looks right";
+        like $res->content, qr/OHAI DER/, "Body looks right";
     };
 
 

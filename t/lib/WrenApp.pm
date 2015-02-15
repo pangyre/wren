@@ -57,25 +57,19 @@ package WrenApp v0.0.1 {
             $self->response->body( $self->view("Xslate")->render($template, { wren => $self }) );
     };
 
+    add_route '/env' =>
+        code => sub {
+            require Data::Dump;
+            my $self = shift;
+            $self->response->content_type("text/plain");
+            $self->response->body( Data::Dump::dump($self->env) );
+    };
 }
 
 1;
 
 __END__
 
-    method home {
-        $self->response->status(200); # This is default on match from Wren.
-        $self->response->body("OHAI\n");
-    };
-
-    method counter {
-        $self->response->body( $self->model("Counter") );
-    };
-
-    method exception {
-        $self->response->status(200);
-        $self->throw("NO CAN HAZ");
-    };
 
 * Auto document routes to POD/map, allow a description?
 
