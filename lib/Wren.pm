@@ -66,6 +66,10 @@ package Wren v0.0.1 {
         is => "lazy",
         clearer => 1;
 
+    has session =>
+        is => "lazy",
+        clearer => 1;
+
     sub _build_request {
         require Plack::Request;
         "Plack::Request"->new( +shift->env );
@@ -76,6 +80,11 @@ package Wren v0.0.1 {
         "Plack::Response"->new( HTTP_NOT_FOUND,
                                 [ "Content-Type" => "text/plain; charset=utf-8" ] );
     }
+
+    sub _build_session {
+        +shift->env->{"psgix.session"};
+    };
+
 
     my %_models;
     sub add_model {
@@ -155,7 +164,7 @@ package Wren v0.0.1 {
             $metaview->view;
     }
 
-    sub _reset { $_[0]->$_ for map "clear_$_", qw/ env request response errors / }
+    sub _reset { $_[0]->$_ for map "clear_$_", qw/ env request response errors session / }
 
     sub finalize {
         my $self = shift;
