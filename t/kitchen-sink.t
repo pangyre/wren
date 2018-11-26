@@ -1,3 +1,4 @@
+#!perl
 use strictures;
 use Test::More;
 use Test::Fatal;
@@ -14,7 +15,7 @@ ok eval "use WrenApp; 1", "use WrenApp;"
 subtest "Walk everything: use/Pod/coverage/spelling" => sub {
     use Test::Pod;
     use Test::Pod::Coverage;
-    use Pod::Coverage::Moose;
+    # No. Broken anyway. use Pod::Coverage::Moose;
 
     my $lib = path( path(__FILE__)->parent->parent, "lib" );
     my $iter = $lib->iterator({ recurse => 1 });

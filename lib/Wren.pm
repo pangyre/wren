@@ -4,8 +4,6 @@ our $AUTHORITY = "cpan:ASHLEY";
 
 package Wren v0.0.1 {
     use Moo;
-    use MooX::late;
-    use MooX::HandlesVia;
 
     use Wren::Error;
     use Path::Tiny;
@@ -408,7 +406,7 @@ such damages.
 Consider doing a ->relative($self->static) in the uri_for because it
 could be a no-op maybe when it's already relative but it will "do the
 right thing" with web paths... not application aware though so it's in
-fact sort of broken as is... Dispatch much be application object and
+fact sort of broken as is... Dispatch musta be application object and
 not just an irreversible run time map.
 
 Should have a sendfile v self-managed static server.
@@ -453,5 +451,3 @@ draft-dusseault-http-patch
     PATCH
 draft-reschke-webdav-search
     SEARCH
-
-
